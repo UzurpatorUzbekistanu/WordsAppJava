@@ -1,0 +1,56 @@
+buildscript {
+	ext {
+		lombokVersion = '1.18.22'
+		spockVersion = '2.4-M4-groovy-4.0'
+		springBootVersion = '3.3.2'
+		springDependencyManagementVersion = '1.1.6'
+		liquidBaseVersion = '4.17.0'
+		snakeyamlVersion = '1.30'
+		thymeleafVersion = '3.2.2'
+	}
+}
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version "${springBootVersion}"
+	id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation "org.projectlombok:lombok:${lombokVersion}"
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation "org.spockframework:spock-spring:${spockVersion}"
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.postgresql:postgresql'
+	implementation "org.liquibase:liquibase-core:${liquidBaseVersion}"
+	implementation "org.yaml:snakeyaml:${snakeyamlVersion}"
+	implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${thymeleafVersion}"
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

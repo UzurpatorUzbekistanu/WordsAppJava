@@ -1,0 +1,32 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+    <changeSet id="3" author="bartlomiej_kleszcz">
+        <createTable tableName="polish_english_word">
+            <column name="polish_word_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="english_word_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="polish_english_word"
+                             columnNames="polish_word_id, english_word_id"
+                             constraintName="uk_polish_english_words"/>
+
+        <addForeignKeyConstraint baseTableName="polish_english_word"
+                                 baseColumnNames="polish_word_id"
+                                 referencedTableName="polish_word"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_polish_word"/>
+        <addForeignKeyConstraint baseTableName="polish_english_word"
+                                 baseColumnNames="english_word_id"
+                                 referencedTableName="english_word"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_english_word"/>
+    </changeSet>
+</databaseChangeLog>

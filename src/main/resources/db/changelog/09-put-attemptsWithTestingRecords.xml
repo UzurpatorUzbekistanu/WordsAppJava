@@ -1,0 +1,38 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+    <changeSet id="5" author="bartlomiej_kleszcz">
+        <insert tableName="attempts">
+            <column name="idUser" value="TEST"/>
+            <column name="polish_word_id" value="1"/>
+            <column name="english_word_id" value="1"/>
+            <column name="date_last_try" value="2024-09-01"/>
+            <column name="timestamp_last_try" value="2024-09-01 10:00:00"/>
+            <column name="success_date" value="2024-09-01"/>
+            <column name="success_timestamp" value="2024-09-01 10:05:00"/>
+            <column name="number_of_attempts" value="3"/>
+        </insert>
+        <insert tableName="attempts">
+            <column name="idUser" value="TEST"/>
+            <column name="polish_word_id" value="2"/>
+            <column name="english_word_id" value="2"/>
+            <column name="date_last_try" value="2024-09-02"/>
+            <column name="timestamp_last_try" value="2024-09-02 11:00:00"/>
+            <column name="success_date" value="2024-09-02"/>
+            <column name="success_timestamp" value="2024-09-02 11:15:00"/>
+            <column name="number_of_attempts" value="5"/>
+        </insert>
+        <insert tableName="attempts">
+            <column name="idUser" value="TEST"/>
+            <column name="polish_word_id" value="3"/>
+            <column name="english_word_id" value="3"/>
+            <column name="date_last_try" value="2024-09-03"/>
+            <column name="timestamp_last_try" value="2024-09-03 12:00:00"/>
+            <column name="success_date" value="2024-09-03"/>
+            <column name="success_timestamp" value="2024-09-03 12:30:00"/>
+            <column name="number_of_attempts" value="2"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

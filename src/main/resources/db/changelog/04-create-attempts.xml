@@ -1,0 +1,40 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+    <changeSet id="4" author="bartlomiej_kleszcz">
+        <createTable tableName="attempts">
+            <column name="id" type="int">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="polish_word_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="english_word_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_last_try" type="date"/>
+            <column name="timestamp_last_try" type="timestamp"/>
+            <column name="date_last_success" type="date"/>
+            <column name="timestamp_last_success" type="timestamp"/>
+            <column name="number_of_attempts" type="int"/>
+            <column name="correct_answers" type="int"/>
+            <column name="wrong_answers" type="int"/>
+            <column name="priority" type="REAL"/>
+        </createTable>
+
+        <addAutoIncrement tableName="attempts" columnName="id" />
+
+        <addForeignKeyConstraint baseTableName="attempts"
+                                 baseColumnNames="polish_word_id"
+                                 referencedTableName="polish_word"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_polish_word"/>
+        <addForeignKeyConstraint baseTableName="attempts"
+                                 baseColumnNames="english_word_id"
+                                 referencedTableName="english_word"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_english_word"/>
+    </changeSet>
+</databaseChangeLog>
