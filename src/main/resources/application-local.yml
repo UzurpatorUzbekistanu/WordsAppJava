@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: WordApp # Nazwa aplikacji
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/WordApp # Adres lokalnej bazy danych
+    username: postgres # Lokalny użytkownik bazy danych
+    password: password # Hasło do lokalnej bazy danych
+    driver-class-name: org.postgresql.Driver # Klasa sterownika PostgreSQL
+
+  liquibase:
+    change-log: classpath:db/changelog/changelog.xml # Ścieżka do changelog Liquibase
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # Dialekt JPA dla PostgreSQL
+    show-sql: true # Pokazywanie zapytań SQL w konsoli

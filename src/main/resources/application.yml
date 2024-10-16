@@ -1,0 +1,13 @@
+logging:
+  level:
+    org:
+      springframework:
+        boot: INFO
+    com:
+      bkleszcz:
+        WordApp: INFO
+        WordApp.db: DEBUG
+
+spring:
+  profiles:
+    active: local

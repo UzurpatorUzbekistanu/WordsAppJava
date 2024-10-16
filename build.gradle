@@ -5,7 +5,7 @@ buildscript {
 		springBootVersion = '3.3.2'
 		springDependencyManagementVersion = '1.1.6'
 		liquidBaseVersion = '4.17.0'
-		snakeyamlVersion = '1.30'
+		snakeyamlVersion = '2.0'
 		thymeleafVersion = '3.2.2'
 	}
 }
