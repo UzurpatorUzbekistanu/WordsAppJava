@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBox = document.getElementById('result');
     const sentenceA1 = document.getElementById('sentenceA1');
     const sentenceHigher = document.getElementById('sentenceHigher');
+    const correctEnglishWord = document.getElementById('translation')
 
     let isAnswerSubmitted = false;
 
@@ -21,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 randomPolishWordBox.innerText = word;
                 resultBox.textContent = '';
                 englishWordInput.value = '';
+                correctEnglishWord.innerText = '';
+
                 isAnswerSubmitted = false;
             })
             .catch(error => {
@@ -50,11 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultBox.textContent = 'Poprawne tłumaczenie!';
                     resultBox.style.color = 'green';
                     getSentences(englishWord);
+                    getCorrectEnglishWord(polishWord);
 
                 } else {
 //                wstaw jak powinno brzmiec poprawnie
                     resultBox.textContent = 'Niepoprawne tłumaczenie. Spróbuj ponownie.';
                     resultBox.style.color = 'red';
+                    getCorrectEnglishWord(polishWord);
                 }
                 isAnswerSubmitted = true;
             })
@@ -110,3 +115,25 @@ function getSentences(englishWord) {
         }
     });
 });
+    function getCorrectEnglishWord(polishWord) {
+        fetch(`get/correctEnglishWord?polishWord=${encodeURIComponent(polishWord)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.text(); // Zmienione na text, aby zobaczyć, co dokładnie jest zwracane
+        })
+        .then(word => {
+            console.log('Received response:', word); // Loguj odpowiedź
+            document.getElementById('translation').innerText = word; // Ustaw odpowiedź jako tekst
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+

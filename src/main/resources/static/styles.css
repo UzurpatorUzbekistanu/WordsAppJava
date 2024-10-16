@@ -51,3 +51,8 @@ button:hover {
     font-size: 20px;
     color: #333;
 }
+
+#translation, #random-polish-word {
+    font-size: 18px;
+
+}

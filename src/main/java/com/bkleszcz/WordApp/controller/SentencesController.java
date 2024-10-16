@@ -26,4 +26,9 @@ public class SentencesController {
     return ResponseEntity.ok(sentences);
   }
 
+  @GetMapping("/correctEnglishWord")
+  public ResponseEntity<String> getCorrectEnglishWord(@RequestParam String polishWord) {
+    return ResponseEntity.ok(sentencesService.getCorrectEnglishWord(polishWord));
+  }
+
 }
