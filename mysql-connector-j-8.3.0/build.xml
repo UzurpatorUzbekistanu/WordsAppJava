@@ -107,8 +107,8 @@ com.mysql.cj.testsuite.jvm=&lt;full_path_to_a_jdk_or_jre&gt;
 # - URL to the test database.
 # - Any of the current MySQL versions.
 # - Mandatory for 'test' target.
-com.mysql.cj.testsuite.url=jdbc:mysql://&lt;host&gt;:&lt;port&gt;/&lt;testDB&gt;?user=&lt;user&gt;&amp;password=&lt;pwd&gt;
-com.mysql.cj.testsuite.mysqlx.url=jdbc:mysql://&lt;user&gt;:&lt;pwd&gt;@&lt;host&gt;:&lt;port&gt;/&lt;testDB&gt;
+com.mysql.cj.testsuite.url=jdbc:mysql://&lt;host&gt;:&lt;port&gt;/&lt;testDB&gt;?appUser=&lt;appUser&gt;&amp;password=&lt;pwd&gt;
+com.mysql.cj.testsuite.mysqlx.url=jdbc:mysql://&lt;appUser&gt;:&lt;pwd&gt;@&lt;host&gt;:&lt;port&gt;/&lt;testDB&gt;
 
 # Cancels re-compiling between successive test executions.
 # - Comment variable if not needed.
@@ -587,8 +587,8 @@ See also com.mysql.cj.conf.PropertyDefinitions.SYSP_* variables for other test o
             <fileset dir="src/build/java" />
             <fileset dir="src/build/misc" />
             <fileset dir="src/generated/java" />
-            <fileset dir="src/main/user-api/java" />
-            <fileset dir="src/main/user-impl/java" />
+            <fileset dir="src/main/appUser-api/java" />
+            <fileset dir="src/main/appUser-impl/java" />
             <fileset dir="src/main/core-api/java" />
             <fileset dir="src/main/core-impl/java" />
             <fileset dir="src/main/protocol-impl/java" />
@@ -777,7 +777,7 @@ See also com.mysql.cj.conf.PropertyDefinitions.SYSP_* variables for other test o
                   value="com.mysql.cj.admin;version=&quot;${com.mysql.cj.build.meta-inf.osgid-version}&quot;,com.mysql.cj.jdbc.admin;version=&quot;${com.mysql.cj.build.meta-inf.osgid-version}&quot;" />
 
         <manifest file="${com.mysql.cj.build.dir.driver}/META-INF/MANIFEST.MF">
-            <attribute name="Built-By" value="${user.name}" />
+            <attribute name="Built-By" value="${appUser.name}" />
             <attribute name="Specification-Title" value="JDBC" />
             <attribute name="Specification-Version" value="4.2" />
             <attribute name="Specification-Vendor" value="Oracle Corporation" />
@@ -976,7 +976,7 @@ See also com.mysql.cj.conf.PropertyDefinitions.SYSP_* variables for other test o
                  bottom="&lt;center&gt;Copyright &amp;copy; 2016, 2024, Oracle and/or its affiliates.&lt;/center&gt;"
                  linkoffline="https://docs.oracle.com/javase/8/docs/api ${com.mysql.cj.docs.jdk8pkg}">
             <sourcepath>
-                <pathelement path="src/main/user-api/java" />
+                <pathelement path="src/main/appUser-api/java" />
                 <pathelement path="src/main/core-api/java" />
             </sourcepath>
             <classpath refid="com.mysql.cj.build.classpath" />
@@ -1204,7 +1204,7 @@ See also com.mysql.cj.conf.PropertyDefinitions.SYSP_* variables for other test o
                  bottom="&lt;center&gt;Copyright &amp;copy; 2016, 2024, Oracle and/or its affiliates.&lt;/center&gt;"
                  linkoffline="https://docs.oracle.com/javase/8/docs/api ${com.mysql.cj.docs.jdk8pkg}">
             <sourcepath>
-                <pathelement path="src/main/user-api/java" />
+                <pathelement path="src/main/appUser-api/java" />
                 <pathelement path="src/main/core-api/java" />
             </sourcepath>
         </javadoc>

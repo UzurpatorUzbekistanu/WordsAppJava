@@ -7554,7 +7554,7 @@
             <column name="word" value="Internet"/>
             <column name="sentence_a1" value=""/>
             <column name="sentence_higher"
-                    value="a worldwide computer network that provides information on very many subjects and enables users to exchange messages"/>
+                    value="a worldwide computer network that provides information on very many subjects and enables appUsers to exchange messages"/>
         </insert>
         <insert tableName="english_word">
             <column name="word" value="interpret"/>
@@ -15345,7 +15345,7 @@
             <column name="sentence_higher" value="helpful or serving a purpose well"/>
         </insert>
         <insert tableName="english_word">
-            <column name="word" value="user"/>
+            <column name="word" value="appUser"/>
             <column name="sentence_a1" value="someone who uses a product, machine, or service"/>
             <column name="sentence_higher" value="a person who uses something"/>
         </insert>
