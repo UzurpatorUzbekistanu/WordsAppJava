@@ -63,12 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const polishWord = randomPolishWordBox.textContent;
         const englishWord = englishWordInput.value;
         let loggedUser = document.getElementById('username').textContent;
-        if (document.getElementById('username').value == "Gość"){
+        if (document.getElementById('username').value == "Gość" || document.getElementById('username').value == "anonymousUser"){
             loggedUser = null;
             }
         console.log(loggedUser)
 
-        fetch('api/repeats/check', {
+        fetch('api/guess/check', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

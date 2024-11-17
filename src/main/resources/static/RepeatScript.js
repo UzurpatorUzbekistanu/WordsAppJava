@@ -97,8 +97,8 @@ function getRandomPolishWord(username) {
                 // Jeśli odpowiedź jest pusta, wyświetlamy komunikat, że nie ma powtórek
                 showNoRepeatsMessage();
             } else {
-                const randomPolishWordBox = document.getElementById('repeated-polish-word');
-                randomPolishWordBox.innerText = word;
+                const repeatedPolishWord = document.getElementById('repeated-polish-word');
+                repeatedPolishWord.innerText = word;
                 const resultBox = document.getElementById('result');
                 resultBox.textContent = '';
                 const englishWordInput = document.getElementById('repeated-english-word');
@@ -113,46 +113,103 @@ function getRandomPolishWord(username) {
     }
 }
 function checkTranslation() {
-        const polishWord = randomPolishWordBox.textContent;
-        const englishWord = englishWordInput.value;
-        let loggedUser = document.getElementById('username').textContent;
-        if (document.getElementById('username').value == "Gość"){
-            loggedUser = null;
-            }
-        console.log(loggedUser)
+    const repeatedPolishWord = document.getElementById('repeated-polish-word'); // Pobranie elementu
+    const polishWord = repeatedPolishWord ? repeatedPolishWord.textContent : ''; // Sprawdzenie, czy istnieje
+    const englishWordInput = document.getElementById('repeated-english-word');
+    const resultBox = document.getElementById('result');
 
-        fetch('api/guess/check', {
-            method: 'POST',
+    if (!englishWordInput || !resultBox) {
+        console.error('Brak elementów na stronie.');
+        return;
+    }
+
+    const englishWord = englishWordInput.value;
+    let loggedUser = document.getElementById('username').textContent;
+
+    if (loggedUser === "Gość") {
+        loggedUser = null;
+    }
+    console.log('Zalogowany użytkownik:', loggedUser);
+
+    fetch('/api/repeats/check', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ polishWord, englishWord, loggedUser })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data) {
+            resultBox.textContent = 'Poprawne tłumaczenie!';
+            resultBox.style.color = 'green';
+            getSentences(englishWord);
+            getCorrectEnglishWord(polishWord);
+        } else {
+            resultBox.textContent = 'Niepoprawne tłumaczenie. Spróbuj ponownie.';
+            resultBox.style.color = 'red';
+            getCorrectEnglishWord(polishWord);
+        }
+    })
+    .catch(error => {
+        resultBox.textContent = 'Błąd podczas sprawdzania tłumaczenia';
+        console.error('Error:', error);
+    });
+}
+
+function getSentences(englishWord) {
+    fetch(`get/sentences?englishWord=${encodeURIComponent(englishWord)}`, { // Używamy prawidłowego endpointu
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(words => {
+        // Upewnij się, że words to tablica z co najmniej dwoma elementami
+        if (Array.isArray(words) && words.length >= 2) { // Dodajemy sprawdzenie
+            const [sentenceA1, sentenceHigher] = words; // Destrukturyzacja tablicy
+            document.getElementById('sentenceA1').innerText = sentenceA1; // Ustawiamy tekst zdania A1
+            document.getElementById('sentenceHigher').innerText = sentenceHigher; // Ustawiamy tekst zdania wyższego poziomu
+        } else {
+            console.error('Otrzymano niewłaściwy format danych:', words);
+        }
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+}
+
+function getCorrectEnglishWord(polishWord) {
+        fetch(`get/correctEnglishWord?polishWord=${encodeURIComponent(polishWord)}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ polishWord, englishWord, loggedUser })
+            }
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data) {
-                    resultBox.textContent = 'Poprawne tłumaczenie!';
-                    resultBox.style.color = 'green';
-                    getSentences(englishWord);
-                    getCorrectEnglishWord(polishWord);
-
-                } else {
-//                wstaw jak powinno brzmiec poprawnie
-                    resultBox.textContent = 'Niepoprawne tłumaczenie. Spróbuj ponownie.';
-                    resultBox.style.color = 'red';
-                    getCorrectEnglishWord(polishWord);
-                }
-                isAnswerSubmitted = true;
-            })
-            .catch(error => {
-                resultBox.textContent = 'Błąd podczas sprawdzania tłumaczenia';
-                console.error('Error:', error);
-            });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.text(); // Zmienione na text, aby zobaczyć, co dokładnie jest zwracane
+        })
+        .then(word => {
+            console.log('Received response:', word); // Loguj odpowiedź
+            document.getElementById('translation').innerText = word; // Ustaw odpowiedź jako tekst
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
     }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -161,6 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitButton = document.getElementById('submit-btn');
     const nextWordButton = document.getElementById('next-word-btn');
     const englishWordInput = document.getElementById('repeated-english-word');  // Zmienna dla inputa
+    const repeatedPolishWord = document.getElementById('repeated-polish-word');
+    let isAnswerSubmitted = false;
 
     // Sprawdzamy, czy przyciski istnieją przed dodaniem nasłuchiwaczy
     if (submitButton) {

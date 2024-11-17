@@ -2,13 +2,18 @@ package com.bkleszcz.WordApp.service;
 
 import com.bkleszcz.WordApp.database.AttemptsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
+import com.bkleszcz.WordApp.database.PolishEnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
 import com.bkleszcz.WordApp.database.UserRepository;
 import com.bkleszcz.WordApp.model.Attempts;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,38 +23,58 @@ public class AttemptsService {
   private final PolishWordRepository polishWordRepository;
   private final EnglishWordRepository englishWordRepository;
   private final UserRepository userRepository;
+  private final PolishEnglishWordRepository polishEnglishWordRepository;
 
   public AttemptsService(AttemptsRepository attemptsRepository,
                          PolishWordRepository polishWordRepository,
                          EnglishWordRepository englishWordRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository, PolishEnglishWordRepository polishEnglishWordRepository) {
     this.attemptsRepository = attemptsRepository;
     this.polishWordRepository = polishWordRepository;
     this.englishWordRepository = englishWordRepository;
     this.userRepository = userRepository;
+    this.polishEnglishWordRepository = polishEnglishWordRepository;
   }
 
   public void doAttempt(String polishWord, String englishWord, String loggedUser, boolean isCorrect) {
-    long polishWordId = polishWordRepository.findByWord(polishWord).get().getId();
-    Long userId = userRepository.findByName(loggedUser).map(user -> user.getId()).orElse(null);
-    long englishWordId = englishWordRepository.findByWord(englishWord).get().getId();
+    Long polishWordId = polishWordRepository.findByWord(polishWord)
+        .map(word -> word.getId().longValue())
+        .orElseThrow(() -> new NoSuchElementException("Polish word not found"));
 
+    Long userId = userRepository.findByName(getLoggedUsername()).get().getId();
+    Long englishWordId = null;
+
+    if (isCorrect) {
+      englishWordId = englishWordRepository.findByWord(englishWord)
+          .map(word -> word.getId().longValue())
+          .orElseThrow(() -> new NoSuchElementException("English word not found"));
+    } else {
+      Optional<Integer> englishWordOptionalId = polishEnglishWordRepository.findByPolishWordId(polishWordId.intValue());
+
+      englishWordId = englishWordOptionalId
+          .map(Integer::longValue)
+          .orElseThrow(() -> new NoSuchElementException("No English word found for Polish word ID: " + polishWordId));
+    }
+
+    // Pobranie bieżącej daty
     LocalDate localDate = LocalDate.now();
     Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-//    anonymous session
+    // Sprawdzenie, czy użytkownik jest anonimowy
     if (userId == null) {
       return;
     }
+
     Optional<Attempts> attempt = attemptsRepository.findByPolishWord_IdAndAppUser_Id(polishWordId, userId);
 
     if (attempt.isPresent()) {
       updateAttempt(attempt.get(), date, isCorrect);
-    }
-    else {
+    } else {
       createAttempt(polishWordId, englishWordId, userId, date, isCorrect);
     }
   }
+
+
 
   private void updateAttempt(Attempts attempt, Date date, boolean isCorrect) {
     attempt.setDateLastTry(date);
@@ -120,6 +145,22 @@ public class AttemptsService {
     Date date = Date.from(localDateRepeat.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     return date;
+  }
+
+  public String getLoggedUsername() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    // Sprawdzenie, czy kontekst uwierzytelniania jest poprawny i zalogowany użytkownik nie jest anonimowy
+    if (authentication != null && authentication.isAuthenticated()
+        && !(authentication.getPrincipal() instanceof String)) {
+
+      Object principal = authentication.getPrincipal();
+
+      if (principal instanceof UserDetails) {
+        return ((UserDetails) principal).getUsername(); // Zwraca nazwę użytkownika
+      }
+    }
+    return null;
   }
 
 }

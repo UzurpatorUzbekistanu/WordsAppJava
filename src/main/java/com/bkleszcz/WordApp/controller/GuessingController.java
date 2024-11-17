@@ -29,8 +29,10 @@ public class GuessingController {
   public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
     boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
 
-    attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), checkRequest.getLoggedUser(), correct);
-
+    System.out.println("logged user: " + checkRequest.getLoggedUser());
+    if(!checkRequest.getLoggedUser().equals("anonymousUser")) {
+      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), checkRequest.getLoggedUser(), correct);
+    }
     return ResponseEntity.ok(correct);
   }
 

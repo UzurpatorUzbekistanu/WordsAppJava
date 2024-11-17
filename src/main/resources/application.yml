@@ -11,4 +11,4 @@ logging:
 
 spring:
   profiles:
-    active: local  # Aktywuje profil lokalny (dla lokalnej konfiguracji)
+    active: prod  # Aktywuje profil lokalny (dla lokalnej konfiguracji)
