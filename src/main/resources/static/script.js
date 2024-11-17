@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkTranslation() {
         const polishWord = randomPolishWordBox.textContent;
-        const englishWord = englishWordInput.value;
+        let englishWord = englishWordInput.value;
         englishWord = englishWord.toLowerCase();
         let loggedUser = document.getElementById('username').textContent;
         if (document.getElementById('username').value == "Gość" || document.getElementById('username').value == "anonymousUser"){

@@ -123,7 +123,7 @@ function checkTranslation() {
         return;
     }
 
-    const englishWord = englishWordInput.value;
+    let englishWord = englishWordInput.value;
     englishWord = englishWord.toLowerCase();
     let loggedUser = document.getElementById('username').textContent;
 
