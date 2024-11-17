@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprawdź Tłumaczenie</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div clss="main-container">
+
+
+    <div class="section">
+        <button onclick="window.location.href='users.html'" id="login-btn">Zaloguj</button>
+        <button onclick="window.location.href='registry.html'"  id="registry-btn">Zarejestruj</button>
+        <button onclick="window.location.href='repeat.html'"  id="repeat-btn">Powtórki</button>
+        <button onclick="window.location.href='index.html'"  id="index-btn">Nowe Słowa</button>
+
+        <span>Zalogowany użytkownik: <strong id="username">Gość</strong></span>
+    </div>
+
+    <div class="section" id="infoSection">
+
+    </div>
+    <div class="container, section" id="containerRepeat">
+        <div id="repeated-polish-word"></div>
+        <input type="text" id="repeated-english-word" placeholder="Wpisz tłumaczenie">
+        <button id="submit-btn">Sprawdź</button>
+        <button id="next-word-btn">Następne słowo</button>
+        <div id="result"></div>
+        <br>
+        <div id="translation"></div>
+        <div>Angielski opis słowa: </div>
+        <br>
+        <div id="sentenceA1"></div>
+        <br>
+        <div id="sentenceHigher"></div>
+
+    </div>
+</div>
+
+
+
+<script src="RepeatScript.js"></script>
+</body>
+</html>

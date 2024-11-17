@@ -5,6 +5,7 @@
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
 
     <include file="db/changelog/01-create-englishword.xml"/>
+    <include file="db/changelog/01a-create-app_users.xml"/>
     <include file="db/changelog/02-create-polishword.xml"/>
     <include file="db/changelog/03-create-polish_english_word.xml"/>
     <include file="db/changelog/04-create-attempts.xml"/>

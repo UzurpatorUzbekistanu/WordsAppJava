@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="section">
+    <button onclick="window.location.href='index.html'" id="index-btn">Powrót</button>
+    <button onclick="window.location.href='users.html'"  id="users-btn">Zaloguj</button>
+</div>
+
+<div class="section">
+    <div class="container">
+        <h1>Zarejestruj</h1>
+        <p>
+            Jeśli już posiadasz konto, zaloguj się <a href="login.html">tutaj</a>.
+            <br>
+            Jeśli nie posiadasz konta, proszę się zarejestrować. Upewnij się, że wypełniłeś wszystkie wymagane pola i hasło jest zgodne z regułami.
+            <br>
+            Hasło musi zawierać co najmniej jedną wielką literę, jedną cyfrę i jeden znak specjalny.
+            <br>
+            Login musi zawierać same litery.
+            <br>
+            Zostaniesz poinformowany o błędach, jeśli nie zostaniesz zarejestrowany.
+        </p>
+        <form id="registerForm">
+            <label for="name">Nazwa:</label>
+            <input type="name" id="name" required>
+            <label for="password">Hasło:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Zarejestruj</button>
+        </form>
+    </div>
+</div>
+<script src="RegistryScript.js"></script>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
+console.log('Skrypt script.js został załadowany');
 document.addEventListener('DOMContentLoaded', () => {
     const randomPolishWordBox = document.getElementById('random-polish-word');
     const englishWordInput = document.getElementById('english-word');
@@ -10,20 +11,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isAnswerSubmitted = false;
 
-function getRandomPolishWord() {
-    fetch('api/guess/random')
+    function loggedUser(){
+      // Funkcja do pobrania zalogowanego użytkownika i zaktualizowania elementu "username"
+    console.log('Inicjalizacja fetch dla użytkownika...');
+    fetch('/api/users/user', {
+        method: 'GET',
+        credentials: 'include' // Użyj include zamiast same-origin
+    })
         .then(response => {
+            console.log('Odpowiedź serwera:', response);
             if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
+                throw new Error(`Błąd odpowiedzi serwera: ${response.status}`);
             }
             return response.text();
         })
-        .then(word => {
-            randomPolishWordBox.innerText = word;
-
-            resultBox.textContent = '';
-            englishWordInput.value = '';
-            correctEnglishWord.innerText = '';
+        .then(username => {
+            console.log('Zalogowany użytkownik:', username);
+            const usernameElement = document.getElementById('username');
+            if (usernameElement) {
+                usernameElement.textContent = username;
+            } else {
+                console.error("Element 'username' nie istnieje w DOM.");
+            }
+        })
+        .catch(error => {
+            console.error("Błąd podczas pobierania użytkownika:", error);
+        });
+    }
+    function getRandomPolishWord() {
+        fetch('api/guess/random')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(word => {
+                randomPolishWordBox.innerText = word;
+                resultBox.textContent = '';
+                englishWordInput.value = '';
+                correctEnglishWord.innerText = '';
             sentenceA1.innerText = '';
             sentenceHigher.innerText = '';
 
@@ -37,13 +64,18 @@ function getRandomPolishWord() {
     function checkTranslation() {
         const polishWord = randomPolishWordBox.textContent;
         const englishWord = englishWordInput.value;
+        let loggedUser = document.getElementById('username').textContent;
+        if (document.getElementById('username').value == "Gość" || document.getElementById('username').value == "anonymousUser"){
+            loggedUser = null;
+            }
+        console.log(loggedUser)
 
         fetch('api/guess/check', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ polishWord, englishWord })
+            body: JSON.stringify({ polishWord, englishWord, loggedUser })
         })
             .then(response => {
                 if (!response.ok) {
@@ -98,6 +130,8 @@ function getRandomPolishWord() {
 
     getRandomPolishWord();
 
+    loggedUser();
+
     submitButton.addEventListener('click', checkTranslation);
     nextWordButton.addEventListener('click', getRandomPolishWord);
 
@@ -135,3 +169,4 @@ function getRandomPolishWord() {
             });
     }
 });
+
