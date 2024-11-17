@@ -124,6 +124,7 @@ function checkTranslation() {
     }
 
     const englishWord = englishWordInput.value;
+    englishWord = englishWord.toLowerCase();
     let loggedUser = document.getElementById('username').textContent;
 
     if (loggedUser === "Gość") {

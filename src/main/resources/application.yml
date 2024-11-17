@@ -2,13 +2,12 @@ logging:
   level:
     org:
       springframework:
-        boot: INFO  # Ustawia poziom logowania dla Spring Boota na INFO
+        boot: INFO
     com:
       bkleszcz:
-        WordApp: DEBUG  # Ustawia poziom logowania dla Twojej aplikacji na DEBUG (dzięki temu będziesz miał więcej szczegółów)
-        WordApp.db: DEBUG  # Ustawia poziom logowania dla zapytań związanych z bazą danych na DEBUG
-    org.springframework.security: DEBUG  # Logowanie Spring Security, co pomoże zrozumieć problemy związane z 403 i bezpieczeństwem
+        WordApp: INFO
+        WordApp.db: DEBUG
 
 spring:
   profiles:
-    active: prod  # Aktywuje profil lokalny (dla lokalnej konfiguracji)
+    active: prod
