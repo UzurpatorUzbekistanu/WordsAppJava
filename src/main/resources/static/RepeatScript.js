@@ -152,16 +152,19 @@ function checkTranslation() {
             resultBox.style.color = 'green';
             getSentences(englishWord);
             getCorrectEnglishWord(polishWord);
+            isAnswerSubmitted = true;
         } else {
             resultBox.textContent = 'Niepoprawne tłumaczenie. Spróbuj ponownie.';
             resultBox.style.color = 'red';
             getCorrectEnglishWord(polishWord);
+            isAnswerSubmitted = true;
         }
         isAnswerSubmitted = true;
     })
     .catch(error => {
         resultBox.textContent = 'Błąd podczas sprawdzania tłumaczenia';
         console.error('Error:', error);
+        isAnswerSubmitted = true;
     });
 }
 
@@ -215,24 +218,31 @@ function getCorrectEnglishWord(polishWord) {
         });
     }
 
+let isAnswerSubmitted = false; // Przeniesione poza event listener, aby była globalna
+
 document.addEventListener('DOMContentLoaded', () => {
-    loggedUser();  // Uruchamiamy pobieranie zalogowanego użytkownika
+    loggedUser(); // Uruchamiamy pobieranie zalogowanego użytkownika
 
     const submitButton = document.getElementById('submit-btn');
     const nextWordButton = document.getElementById('next-word-btn');
-    const englishWordInput = document.getElementById('repeated-english-word');  // Zmienna dla inputa
-    const repeatedPolishWord = document.getElementById('repeated-polish-word');
-    let isAnswerSubmitted = false;
+    const englishWordInput = document.getElementById('repeated-english-word');
 
     // Sprawdzamy, czy przyciski istnieją przed dodaniem nasłuchiwaczy
     if (submitButton) {
-        submitButton.addEventListener('click', checkTranslation);
+        submitButton.addEventListener('click', () => {
+            if (!isAnswerSubmitted) {
+                checkTranslation();
+            }
+        });
     } else {
         console.error('Element submit-btn nie został znaleziony.');
     }
 
     if (nextWordButton) {
-        nextWordButton.addEventListener('click', getRandomPolishWord);
+        nextWordButton.addEventListener('click', () => {
+            isAnswerSubmitted = false; // Reset po pobraniu nowego słowa
+            getRandomPolishWord();
+        });
     } else {
         console.error('Element next-word-btn nie został znaleziony.');
     }
@@ -241,12 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (englishWordInput) {
         englishWordInput.addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
+                event.preventDefault(); // Zapobiega domyślnemu zachowaniu (np. przesyłaniu formularza)
+
                 if (!isAnswerSubmitted) {
-                    checkTranslation();  // Jeśli odpowiedź nie została jeszcze wysłana
+                    checkTranslation(); // Jeśli odpowiedź nie została jeszcze wysłana
                 } else {
-                    getRandomPolishWord();  // Jeśli odpowiedź została wysłana, weź następne słowo
+                    isAnswerSubmitted = false; // Reset po potwierdzeniu odpowiedzi
+                    getRandomPolishWord(); // Jeśli odpowiedź została wysłana, weź następne słowo
                 }
-                event.preventDefault();  // Zapobiega domyślnemu zachowaniu (np. przesyłaniu formularza)
             }
         });
     } else {
