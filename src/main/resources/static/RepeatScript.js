@@ -105,6 +105,7 @@ function getRandomPolishWord(username) {
                 englishWordInput.value = '';
                 const correctEnglishWord = document.getElementById('translation');
                 correctEnglishWord.innerText = '';
+                isAnswerSubmitted = false;
             }
         })
         .catch(error => {
@@ -156,6 +157,7 @@ function checkTranslation() {
             resultBox.style.color = 'red';
             getCorrectEnglishWord(polishWord);
         }
+        isAnswerSubmitted = true;
     })
     .catch(error => {
         resultBox.textContent = 'Błąd podczas sprawdzania tłumaczenia';
