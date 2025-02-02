@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in</title>
+    <title>Zarejestruj</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<div class="section">
-    <button onclick="window.location.href='index.html'" id="index-btn">Powrót</button>
-    <button onclick="window.location.href='users.html'"  id="users-btn">Zaloguj</button>
-</div>
+<div class="main-container">
+    <div class="section">
+        <button onclick="window.location.href='users.html'" id="login-btn"><i class="fas fa-sign-in-alt"></i> Zaloguj</button>
+        <button onclick="window.location.href='registry.html'" id="registry-btn"><i class="fas fa-user-plus"></i> Zarejestruj</button>
+        <button onclick="window.location.href='repeat.html'" id="repeat-btn"><i class="fas fa-redo"></i> Powtórki</button>
+        <button onclick="window.location.href='index.html'" id="index-btn"><i class="fas fa-book"></i> Nowe Słowa</button>
+        <span>Zalogowany użytkownik: <strong id="username">Gość</strong></span>
+    </div>
 
-<div class="section">
-    <div class="container">
+    <div class="section">
         <h1>Zarejestruj</h1>
         <p>
             Jeśli już posiadasz konto, zaloguj się <a href="login.html">tutaj</a>.
@@ -31,11 +35,10 @@
             <input type="name" id="name" required>
             <label for="password">Hasło:</label>
             <input type="password" id="password" required>
-            <button type="submit">Zarejestruj</button>
+            <button type="submit"><i class="fas fa-user-plus"></i> Zarejestruj</button>
         </form>
     </div>
 </div>
 <script src="RegistryScript.js"></script>
-
 </body>
 </html>

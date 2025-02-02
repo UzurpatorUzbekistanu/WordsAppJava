@@ -4,7 +4,7 @@ buildscript {
 		spockVersion = '2.4-M4-groovy-4.0'
 		springBootVersion = '3.3.2'
 		springDependencyManagementVersion = '1.1.6'
-		liquidBaseVersion = '4.17.0'
+		liquidBaseVersion = '4.27.0'
 		snakeyamlVersion = '2.0'
 		thymeleafVersion = '3.2.2'
 		jakartaValidationApi = '3.0.2'
@@ -42,9 +42,10 @@ repositories {
 dependencies {
 	// Podstawowe zależności
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation "org.projectlombok:lombok:${lombokVersion}"
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly "org.projectlombok:lombok:${lombokVersion}"
+	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+	testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+	testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
 	// Baza danych i Liquibase
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -66,6 +67,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation "org.spockframework:spock-spring:${spockVersion}"
+
 }
 
 tasks.named('test') {

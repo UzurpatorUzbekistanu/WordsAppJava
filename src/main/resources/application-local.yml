@@ -15,3 +15,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect # Dialekt JPA dla PostgreSQL
     show-sql: true # Pokazywanie zapytań SQL w konsoli
 
+logging:  # Ta sekcja jest równoległa do sekcji spring
+  level:
+    org.hibernate.SQL: DEBUG # Pokazuje wszystkie zapytania SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # Pokazuje parametry w zapytaniach
+    org.hibernate.orm.jdbc.bind: DEBUG # Szczegółowe informacje o bindowaniu parametrów

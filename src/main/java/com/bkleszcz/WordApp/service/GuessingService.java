@@ -1,10 +1,11 @@
 package com.bkleszcz.WordApp.service;
 
+import com.bkleszcz.WordApp.database.EnglishSynonymsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishEnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
+import com.bkleszcz.WordApp.model.EnglishSynonyms;
 import com.bkleszcz.WordApp.model.EnglishWord;
-import com.bkleszcz.WordApp.model.PolishEnglishWord;
 import com.bkleszcz.WordApp.model.PolishWord;
 import java.util.List;
 import java.util.Optional;
@@ -18,14 +19,20 @@ public class GuessingService {
   private final PolishWordRepository polishWordRepository;
   private final PolishEnglishWordRepository polishEnglishWordRepository;
   private final EnglishWordRepository englishWordRepository;
+  private final EnglishSynonymsRepository englishSynonymsRepository;
+  private final SynonymService synonymService;
 
   @Autowired
   public GuessingService(PolishWordRepository polishWordRepository,
                          PolishEnglishWordRepository polishEnglishWordRepository,
-                         EnglishWordRepository englishWordRepository) {
+                         EnglishWordRepository englishWordRepository,
+                         EnglishSynonymsRepository englishSynonymsRepository,
+                         SynonymService synonymService) {
     this.polishWordRepository = polishWordRepository;
     this.polishEnglishWordRepository = polishEnglishWordRepository;
     this.englishWordRepository = englishWordRepository;
+    this.englishSynonymsRepository = englishSynonymsRepository;
+    this.synonymService = synonymService;
   }
 
   public String getRandomPolishWord() {
@@ -48,6 +55,18 @@ public class GuessingService {
         // Znajdź angielskie słowo po jego id
         Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
 
+        if(synonymService.checkIfSynonymExistsInDatabase(polishWord)){
+          boolean answerFlag = false;
+          List <EnglishSynonyms> possibleAnswersList = englishSynonymsRepository.findByEnglishWordId(Long.valueOf(idEnglish.get()));
+
+          for(EnglishSynonyms possibleAnswer : possibleAnswersList){
+            if(possibleAnswer.getEnglishWord().getWord().equalsIgnoreCase(englishWordGuess)){
+              answerFlag = true;
+              break;
+            }
+          }
+            return answerFlag;
+        }
         // Sprawdź czy słowo pasuje
         return englishWord.map(word -> word.getWord().equalsIgnoreCase(englishWordGuess)).orElse(false);
       } else {

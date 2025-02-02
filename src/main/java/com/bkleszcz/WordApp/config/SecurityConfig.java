@@ -30,6 +30,7 @@ public class SecurityConfig {
             .ignoringRequestMatchers("/api/users/save")
             .ignoringRequestMatchers("/api/repeats/random")
             .ignoringRequestMatchers("/api/repeats/check")
+            .ignoringRequestMatchers("/synonyms")
         )
         .authorizeHttpRequests(auth -> auth
             .anyRequest().permitAll()  // Zezwala na dostęp do wszystkich zasobów, niezależnie od logowania

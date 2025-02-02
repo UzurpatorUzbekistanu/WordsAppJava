@@ -8,7 +8,8 @@ import lombok.Data;
 
 @Embeddable
 @Data
-public class PolishEnglishWordId implements Serializable {
+public class
+PolishEnglishWordId implements Serializable {
 
   @Column(name = "polish_word_id")
   private Integer polishWordId;
