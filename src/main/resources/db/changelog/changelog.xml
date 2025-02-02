@@ -8,6 +8,7 @@
     <include file="db/changelog/01a-create-app_users.xml"/>
     <include file="db/changelog/02-create-polishword.xml"/>
     <include file="db/changelog/03-create-polish_english_word.xml"/>
+    <include file="db/changelog/03a-create-english-synonyms.xml"/>
     <include file="db/changelog/04-create-attempts.xml"/>
     <include file="db/changelog/06-put-records-englishword.xml"/>
     <include file="db/changelog/07-put-records-polishword.xml"/>

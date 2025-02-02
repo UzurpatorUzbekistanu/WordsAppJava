@@ -29,8 +29,11 @@ public class SentencesService {
   public String[] getSentences(String englishWord) {
     String[] table = new String[2];
 
-    table[0] = englishWordRepository.findByWord(englishWord).get().getSentenceA1();
-    table[1] = englishWordRepository.findByWord(englishWord).get().getSentenceHigher();
+    Optional<EnglishWord> englishWordEntity = englishWordRepository.findByWord(englishWord);
+    if(englishWordEntity.isPresent()){
+      table[0] = englishWordEntity.get().getSentenceA1();
+      table[1] = englishWordEntity.get().getSentenceHigher();
+    }
 
     return table;
   }
