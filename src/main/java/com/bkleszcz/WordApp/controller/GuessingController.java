@@ -2,6 +2,7 @@ package com.bkleszcz.WordApp.controller;
 
 import com.bkleszcz.WordApp.service.AttemptsService;
 import com.bkleszcz.WordApp.service.GuessingService;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,32 +37,22 @@ public class GuessingController {
     return ResponseEntity.ok(correct);
   }
 
-  // Klasa pomocnicza do mapowania danych z ciała żądania
+  @Getter
   public static class CheckRequest {
-    private String polishWord;
+      // Gettery i settery
+      private String polishWord;
     private String englishWord;
     private String loggedUser;
 
-    // Gettery i settery
-    public String getPolishWord() {
-      return polishWord;
-    }
-
-    public void setPolishWord(String polishWord) {
+      public void setPolishWord(String polishWord) {
       this.polishWord = polishWord;
     }
 
-    public String getEnglishWord() {
-      return englishWord;
-    }
-
-    public void setEnglishWord(String englishWord) {
+      public void setEnglishWord(String englishWord) {
       this.englishWord = englishWord;
     }
-    public String getLoggedUser(){
-      return loggedUser;
-    }
-    public void setLoggedUser(String loggedUser) {
+
+      public void setLoggedUser(String loggedUser) {
       this.loggedUser = loggedUser;
     }
   }
