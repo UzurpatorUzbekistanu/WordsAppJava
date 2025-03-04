@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/guess")
 public class GuessingController {
@@ -21,8 +24,10 @@ public class GuessingController {
   }
 
   @GetMapping("/random")
-  public ResponseEntity<String> getRandomPolishWord() {
-    return ResponseEntity.ok(guessingService.getRandomPolishWord());
+  public ResponseEntity<List<String>> getRandomPolishWord() {
+    List<String> words = new ArrayList<>();
+    words.add(guessingService.getRandomPolishWord());
+    return ResponseEntity.ok(words);  // Zwracamy listę z jednym słowem
   }
 
   // Zmiana: używamy @RequestBody, aby pobrać dane z ciała żądania

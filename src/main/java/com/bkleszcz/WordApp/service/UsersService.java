@@ -39,4 +39,7 @@ public class UsersService {
     return usersRepository.save(appUser);
   }
 
+    public AppUser getUser(String name){
+        return usersRepository.findByName(name).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 }

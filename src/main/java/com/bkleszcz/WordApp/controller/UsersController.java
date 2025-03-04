@@ -3,7 +3,11 @@ package com.bkleszcz.WordApp.controller;
 
 import com.bkleszcz.WordApp.model.AppUser;
 import com.bkleszcz.WordApp.service.UsersService;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,25 +36,35 @@ public class UsersController {
   }
 
   @PostMapping("/save")
-  public ResponseEntity<String> createUser(@RequestBody AppUser appUser) {
+  public ResponseEntity<Map<String, String>> createUser(@RequestBody AppUser appUser) {
     try{
       usersService.createUser(appUser);
-      return ResponseEntity.ok("User saved successfully");
+
+      Map<String, String> response = new HashMap<>();
+      response.put("message", "User saved successfully");
+
+      return ResponseEntity.ok(response);
     } catch (IllegalArgumentException e) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+      Map<String, String> response = new HashMap<>();
+      response.put("message", "User not saved");
+
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
   }
 
   @GetMapping("/user")
-  public String getUser() {
+  public AppUser getUserInfo() {
+    // Pobierz aktualnie zalogowanego użytkownika
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    System.out.println(authentication);
+    // Jeśli użytkownik jest zalogowany
     if (authentication != null && authentication.isAuthenticated()) {
-      return authentication.getName();  // Zwraca nazwę zalogowanego użytkownika
-    } else {
-      return "Gość";  // Jeśli użytkownik nie jest zalogowany
+      String username = authentication.getName();
+      return usersService.getUser(username);
     }
-  }
 
+    throw new RuntimeException("User not authenticated");
+  }
 
 }

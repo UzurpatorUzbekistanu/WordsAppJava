@@ -8,9 +8,13 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class SecurityConfig {
@@ -24,26 +28,14 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        .csrf(csrf -> csrf
-            .ignoringRequestMatchers("/auth/login")
-            .ignoringRequestMatchers("/api/guess/check")
-            .ignoringRequestMatchers("/api/users/save")
-            .ignoringRequestMatchers("/api/repeats/random")
-            .ignoringRequestMatchers("/api/repeats/check")
-            .ignoringRequestMatchers("/synonyms")
-        )
-        .authorizeHttpRequests(auth -> auth
-            .anyRequest().permitAll()  // Zezwala na dostęp do wszystkich zasobów, niezależnie od logowania
-        )
-        .formLogin(form -> form
-            .loginPage("/users")  // Określa stronę logowania, która wyświetla formularz logowania
-            .loginProcessingUrl("/auth/login")  // Zmieniamy URL, gdzie formularz jest przetwarzany
-            .defaultSuccessUrl("/", true)  // Po zalogowaniu, użytkownik zostanie przekierowany na /index
-            .permitAll()  // Zezwala na dostęp do strony logowania
-        )
-        .logout(logout -> logout
-            .permitAll()  // Zezwala na dostęp do logout
-        );
+            .csrf(AbstractHttpConfigurer::disable) // Wyłącz CSRF
+            .cors(withDefaults()) // ⬅ To poprawnie uruchamia CORS
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/guess/random", "/api/users/save",
+                            "/api/users/user").permitAll()
+                    .requestMatchers("/auth/login").permitAll()
+                    .anyRequest().authenticated()
+            );
 
     return http.build();
   }
@@ -65,5 +57,5 @@ public class SecurityConfig {
     authProvider.setPasswordEncoder(passwordEncoder());
     return authProvider;
   }
-}
 
+}

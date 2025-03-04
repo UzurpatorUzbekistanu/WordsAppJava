@@ -15,3 +15,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  # Automatyczne aktualizowanie schematu bazy danych
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+        http-only: true
+        same-site: lax
