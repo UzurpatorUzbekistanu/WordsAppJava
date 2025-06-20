@@ -38,7 +38,9 @@ public class RepeatController {
   public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
     boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
 
-    attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), getLoggedUsername(), correct);
+    attemptsService.doAttempt(checkRequest.getPolishWord(),
+                              checkRequest.getEnglishWord(),
+                              getLoggedUsername(), correct);
 
     return ResponseEntity.ok(correct);
   }

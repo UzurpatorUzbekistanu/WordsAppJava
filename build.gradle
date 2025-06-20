@@ -67,6 +67,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation "org.spockframework:spock-spring:${spockVersion}"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
 }
 

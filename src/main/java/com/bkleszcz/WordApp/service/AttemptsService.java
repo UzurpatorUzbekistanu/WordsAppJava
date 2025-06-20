@@ -4,7 +4,7 @@ import com.bkleszcz.WordApp.database.AttemptsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishEnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
-import com.bkleszcz.WordApp.database.UserRepository;
+import com.bkleszcz.WordApp.database.userRepository.UserRepository;
 import com.bkleszcz.WordApp.model.Attempts;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -41,7 +41,7 @@ public class AttemptsService {
         .map(word -> word.getId().longValue())
         .orElseThrow(() -> new NoSuchElementException("Polish word not found"));
 
-    Long userId = userRepository.findByName(getLoggedUsername()).get().getId();
+    Long userId = userRepository.find().getLoggedUsername();
     Long englishWordId = null;
 
     if (isCorrect) {
@@ -162,5 +162,6 @@ public class AttemptsService {
     }
     return null;
   }
+
 
 }

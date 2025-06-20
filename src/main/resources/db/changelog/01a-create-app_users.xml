@@ -3,19 +3,61 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
-    <changeSet id="5" author="bartlomiej_kleszcz">
-        <createTable tableName="app_user">
-            <column name="id" type="BIGINT">
-                <constraints primaryKey="true" nullable="false" />
+    <!-- ChangeSet 1: Tworzy tabelę roles -->
+    <changeSet id="1" author="bartlomiej_kleszcz">
+        <createTable tableName="roles"> <!-- Utworzenie tabeli "roles" -->
+            <column name="id" type="BIGINT"> <!-- Kolumna id o typie BIGINT -->
+                <constraints primaryKey="true" nullable="false"/> <!-- Ustawia kolumnę jako klucz główny i wymagany -->
             </column>
-            <column name="name" type="VARCHAR(100)">
-                <constraints nullable="false" unique="true" />
-            </column>
-            <column name="password" type="VARCHAR(255)">
-                <constraints nullable="false" />
+            <column name="name" type="VARCHAR(100)"> <!-- Kolumna name o typie VARCHAR(100) -->
+                <constraints nullable="false" unique="true"/> <!-- Wartość wymagana i unikalna -->
             </column>
         </createTable>
+        <addAutoIncrement tableName="roles" columnName="id"/> <!-- Ustawia autoinkrementację dla kolumny id -->
+    </changeSet>
 
-        <addAutoIncrement tableName="app_user" columnName="id" />
+    <!-- ChangeSet 2: Tworzy tabelę users -->
+    <changeSet id="2" author="bartlomiej_kleszcz">
+        <createTable tableName="users"> <!-- Utworzenie tabeli "users" -->
+            <column name="id" type="BIGINT"> <!-- Kolumna id o typie BIGINT -->
+                <constraints primaryKey="true" nullable="false"/> <!-- Ustawia kolumnę jako klucz główny i wymagany -->
+            </column>
+            <column name="firstName" type="VARCHAR(255)"> <!-- Kolumna firstName o typie VARCHAR(255) -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="lastName" type="VARCHAR(255)"> <!-- Kolumna lastName o typie VARCHAR(255) -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="email" type="VARCHAR(255)"> <!-- Kolumna email o typie VARCHAR(255) -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="password" type="VARCHAR(60)"> <!-- Kolumna password o typie VARCHAR(60) -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="enabled" type="BOOLEAN"> <!-- Kolumna enabled o typie BOOLEAN -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="secret" type="VARCHAR(255)"/> <!-- Kolumna secret o typie VARCHAR(255), wartość opcjonalna -->
+        </createTable>
+        <addAutoIncrement tableName="users" columnName="id"/> <!-- Ustawia autoinkrementację dla kolumny id -->
+    </changeSet>
+
+    <!-- ChangeSet 3: Tworzy tabelę łączącą users i roles oraz dodaje klucze obce -->
+    <changeSet id="3" author="bartlomiej_kleszcz">
+        <createTable tableName="users_roles"> <!-- Utworzenie tabeli "users_roles" -->
+            <column name="user_id" type="BIGINT"> <!-- Kolumna user_id o typie BIGINT -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+            <column name="role_id" type="BIGINT"> <!-- Kolumna role_id o typie BIGINT -->
+                <constraints nullable="false"/> <!-- Wartość wymagana -->
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="user_id, role_id" constraintName="PK_users_roles" tableName="users_roles"/> <!-- Ustawia klucz główny złożony z user_id i role_id -->
+        <addForeignKeyConstraint baseTableName="users_roles" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="FK_users_roles_user"/> <!-- Klucz obcy łączący user_id z kolumną id tabeli users -->
+        <addForeignKeyConstraint baseTableName="users_roles" baseColumnNames="role_id"
+                                 referencedTableName="roles" referencedColumnNames="id"
+                                 constraintName="FK_users_roles_role"/> <!-- Klucz obcy łączący role_id z kolumną id tabeli roles -->
     </changeSet>
 </databaseChangeLog>

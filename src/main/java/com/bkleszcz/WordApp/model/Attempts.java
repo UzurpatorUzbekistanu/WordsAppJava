@@ -1,5 +1,6 @@
 package com.bkleszcz.WordApp.model;
 
+import com.bkleszcz.WordApp.domain.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,7 +33,7 @@ public class Attempts {
 
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
-  private AppUser appUser;
+  private User appUser;
 
   private Date dateLastTry;
   private Date dateLastSuccess;

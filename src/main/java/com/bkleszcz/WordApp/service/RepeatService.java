@@ -3,10 +3,9 @@ package com.bkleszcz.WordApp.service;
 import com.bkleszcz.WordApp.database.AttemptsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
-import com.bkleszcz.WordApp.database.UserRepository;
-import com.bkleszcz.WordApp.model.AppUser;
+import com.bkleszcz.WordApp.database.userRepository.UserRepository;
+import com.bkleszcz.WordApp.domain.User;
 import com.bkleszcz.WordApp.model.Attempts;
-import com.bkleszcz.WordApp.model.PolishWord;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -38,7 +37,7 @@ public class RepeatService {
     LocalDate localDate = LocalDate.now();
     Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    AppUser user = userRepository.findByName(userName).get();
+    User user = userRepository.findByUsername(userName);
     if (user == null){
       return "Jesteś niezalogowany";
     }
