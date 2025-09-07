@@ -4,8 +4,9 @@ import com.bkleszcz.WordApp.database.AttemptsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishEnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
-import com.bkleszcz.WordApp.database.UserRepository;
+import com.bkleszcz.WordApp.database.userRepository.UserRepository;
 import com.bkleszcz.WordApp.model.Attempts;
+import com.bkleszcz.WordApp.domain.User;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -24,55 +25,77 @@ public class AttemptsService {
   private final EnglishWordRepository englishWordRepository;
   private final UserRepository userRepository;
   private final PolishEnglishWordRepository polishEnglishWordRepository;
+  private final ExperienceService experienceService;
 
   public AttemptsService(AttemptsRepository attemptsRepository,
                          PolishWordRepository polishWordRepository,
                          EnglishWordRepository englishWordRepository,
-                         UserRepository userRepository, PolishEnglishWordRepository polishEnglishWordRepository) {
+                         UserRepository userRepository, PolishEnglishWordRepository polishEnglishWordRepository, ExperienceService experienceService) {
     this.attemptsRepository = attemptsRepository;
     this.polishWordRepository = polishWordRepository;
     this.englishWordRepository = englishWordRepository;
     this.userRepository = userRepository;
     this.polishEnglishWordRepository = polishEnglishWordRepository;
+    this.experienceService = experienceService;
   }
+
+  public Long getCurrentUserId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.isAuthenticated()
+            && !(authentication.getPrincipal() instanceof String)) {
+      Object principal = authentication.getPrincipal();
+      if (principal instanceof UserDetails) {
+        String email = ((UserDetails) principal).getUsername();
+        return userRepository.findByEmail(email)
+                .map(User::getId)
+                .orElse(null);
+      }
+    }
+    return null;
+  }
+
+  public Long getLoggedUserId() {
+    return getCurrentUserId();
+  }
+
 
   public void doAttempt(String polishWord, String englishWord, String loggedUser, boolean isCorrect) {
     Long polishWordId = polishWordRepository.findByWord(polishWord)
-        .map(word -> word.getId().longValue())
-        .orElseThrow(() -> new NoSuchElementException("Polish word not found"));
+            .map(word -> word.getId().longValue())
+            .orElseThrow(() -> new NoSuchElementException("Polish word not found"));
 
-    Long userId = userRepository.findByName(getLoggedUsername()).get().getId();
-    Long englishWordId = null;
+    Optional<User> userOptional = userRepository.findById(getCurrentUserId());
 
-    if (isCorrect) {
-      englishWordId = englishWordRepository.findByWord(englishWord)
-          .map(word -> word.getId().longValue())
-          .orElseThrow(() -> new NoSuchElementException("English word not found"));
-    } else {
-      Optional<Integer> englishWordOptionalId = polishEnglishWordRepository.findByPolishWordId(polishWordId.intValue());
-
-      englishWordId = englishWordOptionalId
-          .map(Integer::longValue)
-          .orElseThrow(() -> new NoSuchElementException("No English word found for Polish word ID: " + polishWordId));
+    if (userOptional.isEmpty()) {
+      return; // użytkownik niezalogowany
     }
 
-    // Pobranie bieżącej daty
+    Long englishWordId = null;
+    if (isCorrect) {
+      englishWordId = englishWordRepository.findByWord(englishWord)
+              .map(word -> word.getId().longValue())
+              .orElseThrow(() -> new NoSuchElementException("English word not found"));
+      experienceService.doUserExperienceGainedAndStrike(true, userOptional.get());
+    } else {
+      Optional<Integer> englishWordOptionalId = polishEnglishWordRepository.findByPolishWordId(polishWordId.intValue());
+      englishWordId = englishWordOptionalId
+              .map(Integer::longValue)
+              .orElseThrow(() -> new NoSuchElementException("No English word found for Polish word ID: " + polishWordId));
+      experienceService.doUserExperienceGainedAndStrike(false, userOptional.get());
+    }
+
+    // Pozostała logika bez zmian...
     LocalDate localDate = LocalDate.now();
     Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    // Sprawdzenie, czy użytkownik jest anonimowy
-    if (userId == null) {
-      return;
-    }
-
-    Optional<Attempts> attempt = attemptsRepository.findByPolishWord_IdAndAppUser_Id(polishWordId, userId);
-
+    Optional<Attempts> attempt = attemptsRepository.findByPolishWord_IdAndAppUser_Id(polishWordId, userOptional.get().getId());
     if (attempt.isPresent()) {
       updateAttempt(attempt.get(), date, isCorrect);
     } else {
-      createAttempt(polishWordId, englishWordId, userId, date, isCorrect);
+      createAttempt(polishWordId, englishWordId, userOptional.get().getId(), date, isCorrect);
     }
   }
+
 
 
 
@@ -86,6 +109,7 @@ public class AttemptsService {
     }
     else {
       attempt.setWrongAnswers(attempt.getWrongAnswers() + 1);
+
       if (attempt.getLevel() > 0){
         attempt.setLevel(attempt.getLevel() - 1);
       }
@@ -142,25 +166,22 @@ public class AttemptsService {
         }
         break;
     }
-    Date date = Date.from(localDateRepeat.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-    return date;
+      assert localDateRepeat != null;
+      return Date.from(localDateRepeat.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
   public String getLoggedUsername() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    // Sprawdzenie, czy kontekst uwierzytelniania jest poprawny i zalogowany użytkownik nie jest anonimowy
     if (authentication != null && authentication.isAuthenticated()
         && !(authentication.getPrincipal() instanceof String)) {
 
       Object principal = authentication.getPrincipal();
 
       if (principal instanceof UserDetails) {
-        return ((UserDetails) principal).getUsername(); // Zwraca nazwę użytkownika
+        return ((UserDetails) principal).getUsername();
       }
     }
     return null;
   }
-
 }

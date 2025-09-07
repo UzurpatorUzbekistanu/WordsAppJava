@@ -3,19 +3,34 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
-    <changeSet id="5" author="bartlomiej_kleszcz">
-        <createTable tableName="app_user">
-            <column name="id" type="BIGINT">
-                <constraints primaryKey="true" nullable="false" />
+
+    <!-- ChangeSet 2: Tworzy tabelę users -->
+    <changeSet id="2" author="bartlomiej_kleszcz">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(100)">
-                <constraints nullable="false" unique="true" />
+            <column name="user_name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
             </column>
-            <column name="password" type="VARCHAR(255)">
-                <constraints nullable="false" />
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(60)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="strike_best" type="INT" />
+            <column name="strike_current" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="experience" type="INT"/>
+            <column name="level" type="VARCHAR(20)">
+                <constraints nullable="false"/>
             </column>
         </createTable>
-
-        <addAutoIncrement tableName="app_user" columnName="id" />
     </changeSet>
+
 </databaseChangeLog>

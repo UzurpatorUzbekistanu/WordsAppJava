@@ -8,6 +8,7 @@ import com.bkleszcz.WordApp.model.EnglishSynonyms;
 import com.bkleszcz.WordApp.model.EnglishWord;
 import com.bkleszcz.WordApp.model.PolishWord;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,20 +43,14 @@ public class GuessingService {
   }
 
   public boolean checkTranslation(String polishWord, String englishWordGuess) {
-
-    Optional<PolishWord> polish = polishWordRepository.findByWord(polishWord);
-
-    if (polish.isPresent()) {
-      Integer idPolish = polish.get().getId();
-
-      // Znajdź id angielskiego słowa na podstawie polskiego słowa
+    
+      int idPolish = getIdOfPolishWord(polishWord);
       Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(idPolish);
 
       if (idEnglish.isPresent()) {
-        // Znajdź angielskie słowo po jego id
         Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
 
-        if(synonymService.checkIfSynonymExistsInDatabase(polishWord)){
+        if(synonymService.checkIfSynonymExistsInDatabase(idEnglish.get().longValue())){
           boolean answerFlag = false;
           List <EnglishSynonyms> possibleAnswersList = englishSynonymsRepository.findByEnglishWordId(Long.valueOf(idEnglish.get()));
 
@@ -67,14 +62,41 @@ public class GuessingService {
           }
             return answerFlag;
         }
-        // Sprawdź czy słowo pasuje
         return englishWord.map(word -> word.getWord().equalsIgnoreCase(englishWordGuess)).orElse(false);
       } else {
         return false;
       }
-    }
 
-    return false;
+  }
+
+  public String[] getHints(PolishWord polishWord) {
+    return Objects.requireNonNull(getEnglishWordByPolishWord(polishWord)).split(" ");
+  }
+
+  private int getIdOfPolishWord(String polishWord) {
+    Optional<PolishWord> polish = polishWordRepository.findByWord(polishWord);
+    if(polish.isPresent()){
+      return polish.get().getId();
+    }else {
+      return 0;
+    }
+  }
+
+  public PolishWord getEntityOfPolishWord (String polishWord){
+    Optional<PolishWord> polishWordOptional = polishWordRepository.findByWord(polishWord);
+
+    return polishWordOptional.orElse(null);
+  }
+
+  private String getEnglishWordByPolishWord(PolishWord polishWord) {
+    Integer idPolish = polishWord.getId();
+    Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(idPolish);
+    if (idEnglish.isPresent()) {
+      Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
+      return englishWord.map(EnglishWord::getWord).orElse(null);
+    } else {
+      return null;
+    }
   }
 
 }

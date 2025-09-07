@@ -30,27 +30,27 @@ public class RepeatController {
   }
 
   @GetMapping("/random")
-  public ResponseEntity<String> getRandomRepeatedPolishWord(@RequestParam String username) {
-    return ResponseEntity.ok(repeatService.getRandomRepeatedPolishWord(username));
+  public ResponseEntity<String> getRandomRepeatedPolishWord(Authentication authentication) {
+    return ResponseEntity.ok(repeatService.getRandomRepeatedPolishWord(authentication.getName()));
   }
 
   @PostMapping("/check")
-  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
+  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest, Authentication authentication) {
     boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
 
-    attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), getLoggedUsername(), correct);
-
+    if (authentication != null && authentication.isAuthenticated() &&
+            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+      String loggedUser = authentication.getName(); // login użytkownika
+      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), loggedUser, correct);
+    }
     return ResponseEntity.ok(correct);
   }
 
-  // Klasa pomocnicza do mapowania danych z ciała żądania
   public static class CheckRequest {
 
     private String polishWord;
     private String englishWord;
-    private String loggedUser;
 
-    // Gettery i settery
     public String getPolishWord() {
       return polishWord;
     }
@@ -66,28 +66,7 @@ public class RepeatController {
     public void setEnglishWord(String englishWord) {
       this.englishWord = englishWord;
     }
-    public String getLoggedUser(){
-      return loggedUser;
-    }
-    public void setLoggedUser(String loggedUser) {
-      this.loggedUser = loggedUser;
-    }
   }
 
-  public String getLoggedUsername() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    // Sprawdzenie, czy kontekst uwierzytelniania jest poprawny i zalogowany użytkownik nie jest anonimowy
-    if (authentication != null && authentication.isAuthenticated()
-        && !(authentication.getPrincipal() instanceof String)) {
-
-      Object principal = authentication.getPrincipal();
-
-      if (principal instanceof UserDetails) {
-        return ((UserDetails) principal).getUsername(); // Zwraca nazwę użytkownika
-      }
-    }
-    return null;
-  }
 
 }

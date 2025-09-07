@@ -3,14 +3,14 @@ package com.bkleszcz.WordApp.service;
 import com.bkleszcz.WordApp.database.AttemptsRepository;
 import com.bkleszcz.WordApp.database.EnglishWordRepository;
 import com.bkleszcz.WordApp.database.PolishWordRepository;
-import com.bkleszcz.WordApp.database.UserRepository;
-import com.bkleszcz.WordApp.model.AppUser;
+import com.bkleszcz.WordApp.database.userRepository.UserRepository;
+import com.bkleszcz.WordApp.domain.User;
 import com.bkleszcz.WordApp.model.Attempts;
-import com.bkleszcz.WordApp.model.PolishWord;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,23 +33,25 @@ public class RepeatService {
   }
 
   @GetMapping("/random")
-  public String getRandomRepeatedPolishWord(String userName) {
-
+  public String getRandomRepeatedPolishWord(String userName) { // <- parametr to ID, nie userName
     LocalDate localDate = LocalDate.now();
     Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    AppUser user = userRepository.findByName(userName).get();
-    if (user == null){
-      return "Jesteś niezalogowany";
+    Optional<User> userOptional = userRepository.findByUserName(userName);
+    if (userOptional.isEmpty()) {
+      return "Użytkownik nie istnieje";
     }
 
-    List<Attempts> attemptsToRepeat = attemptsRepository.findByAppUser_IdAndDateRepeatLessThanEqual(user.getId(), date );
+    User user = userOptional.get();
 
-    if (attemptsToRepeat.size() == 0){
+    List<Attempts> attemptsToRepeat = attemptsRepository
+            .findByAppUser_IdAndDateRepeatLessThanEqual(user.getId(), date);
+
+    if (attemptsToRepeat.isEmpty()) {
       return "nie masz powtórek na dziś";
     }
+
     int randomIndex = new Random().nextInt(attemptsToRepeat.size());
     return attemptsToRepeat.get(randomIndex).getPolishWord().getWord();
-
   }
 }

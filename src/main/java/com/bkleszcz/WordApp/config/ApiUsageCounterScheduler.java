@@ -4,7 +4,9 @@ package com.bkleszcz.WordApp.config;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
+@Component
 @EnableScheduling
 public class ApiUsageCounterScheduler {
 
@@ -16,6 +18,7 @@ public class ApiUsageCounterScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     public void resetCounter() {
         usageCounter = 0;
+
     }
 
     public static void incrementUsageCounter() {
