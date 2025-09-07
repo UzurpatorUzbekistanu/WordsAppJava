@@ -15,4 +15,5 @@ public interface AttemptsRepository extends JpaRepository<Attempts, Long> {
 
   List<Attempts> findByAppUser_IdAndDateRepeatLessThanEqual(Long userId, Date date);
 
+    List<Attempts> findByAppUserId(Long userId);
 }

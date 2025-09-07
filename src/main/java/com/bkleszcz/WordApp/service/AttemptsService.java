@@ -10,8 +10,12 @@ import com.bkleszcz.WordApp.domain.User;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.bkleszcz.WordApp.model.dto.AttemptsDto;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -183,5 +187,26 @@ public class AttemptsService {
       }
     }
     return null;
+  }
+
+  public List<Attempts> getAllAttemptsByUserId(Long userId) {
+    return attemptsRepository.findByAppUserId(userId);
+  }
+
+  public List<AttemptsDto> getAttemptsDtosByUserId(Long userId) {
+    List<Attempts> attempts = attemptsRepository.findByAppUserId(userId);
+    return attempts.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  private AttemptsDto convertToDto(Attempts attempt) {
+    AttemptsDto dto = new AttemptsDto();
+    dto.setUserId(attempt.getAppUser().getId());
+    dto.setExperienceGained(attempt.getExperienceGained());
+    dto.setDateLastTry(attempt.getDateLastTry());
+    dto.setLevel(attempt.getLevel());
+    dto.setWithStrike(attempt.getWithStrike());
+    return dto;
   }
 }
