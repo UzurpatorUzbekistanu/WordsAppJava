@@ -1,58 +1,49 @@
 package com.bkleszcz.WordApp.service;
 
-import com.bkleszcz.WordApp.controller.UserResponseDto;
 import com.bkleszcz.WordApp.database.userRepository.UserRepository;
 import com.bkleszcz.WordApp.domain.User;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import jakarta.annotation.security.RolesAllowed;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-  public UserService(UserRepository userRepository) {
+  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
   }
 
-  @PreAuthorize("hasRole('ROLE_API_READ_PRIVILEGE')")
-  public List<UserResponseDto> getUsers() {
-    return userRepository.findAll().stream().map(User::toDto).collect(Collectors.toList());
+  public User createUser(User user) {
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    return userRepository.save(user);
   }
 
-  @PreAuthorize("hasRole('ROLE_API_READ_PRIVILEGE') or hasRole('ROLE_ADMIN')")
-  public List<UserResponseDto> getUsersMultiRoles() {
-    return userRepository.findAll().stream().map(User::toDto).collect(Collectors.toList());
+  public List<User> getAllUsers() {
+    return userRepository.findAll();
   }
 
-  @PostAuthorize("#username == authentication.principal.email")
-  public UserResponseDto getUserPreAuth(String username) {
-    return userRepository.findByEmail(username).toDto();
+  @Override
+  public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    return userRepository.findByUserName(userName)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with this name: " + userName));
   }
 
-  @Secured("ROLE_API_READ_PRIVILEGE")
-  public UserResponseDto getUserSecured(String username) {
-    return userRepository.findByEmail(username).toDto();
+  List<User> top3StrikesUsers () {
+    return userRepository.findAllByOrderByStrikeBestDesc(PageRequest.of(0,3));
   }
 
-  @Secured({ "ROLE_API_READ_PRIVILEGE", "ROLE_ADMIN" })
-  public UserResponseDto getUserSecuredMultiRoles(String username) {
-    return userRepository.findByEmail(username).toDto();
+  List<User> top3ScoreUsers () {
+    return userRepository.findAllByOrderByExperienceDesc(PageRequest.of(0,3));
   }
 
-  @RolesAllowed("ROLE_API_READ_PRIVILEGE")
-  public UserResponseDto getUserJsr250(String username) {
-    return userRepository.findByEmail(username).toDto();
-  }
 
-  @RolesAllowed({ "ROLE_API_READ_PRIVILEGE", "ROLE_ADMIN" })
-  public UserResponseDto getUserJsr250MultiRoles(String username) {
-    return userRepository.findByEmail(username).toDto();
-  }
 }

@@ -5,6 +5,7 @@ import com.bkleszcz.WordApp.service.GuessingService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -27,24 +28,24 @@ public class GuessingController {
   public ResponseEntity<List<String>> getRandomPolishWord() {
     List<String> words = new ArrayList<>();
     words.add(guessingService.getRandomPolishWord());
-    return ResponseEntity.ok(words);  // Zwracamy listę z jednym słowem
+    return ResponseEntity.ok(words);
   }
 
-  // Zmiana: używamy @RequestBody, aby pobrać dane z ciała żądania
   @PostMapping("/check")
-  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
+  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest, Authentication authentication) {
     boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
 
-    System.out.println("logged user: " + checkRequest.getLoggedUser());
-    if(!checkRequest.getLoggedUser().equals("anonymousUser")) {
-      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), checkRequest.getLoggedUser(), correct);
+    if (authentication != null && authentication.isAuthenticated() &&
+            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+      String loggedUser = authentication.getName(); // login użytkownika
+      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), loggedUser, correct);
     }
     return ResponseEntity.ok(correct);
   }
 
+
   @Getter
   public static class CheckRequest {
-      // Gettery i settery
       private String polishWord;
     private String englishWord;
     private String loggedUser;

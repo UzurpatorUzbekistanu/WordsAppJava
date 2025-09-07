@@ -1,139 +1,87 @@
 package com.bkleszcz.WordApp.domain;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import com.bkleszcz.WordApp.controller.UserResponseDto;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.Collections;
+
+
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Getter
     @Id
-    @Column(unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter
-    private String firstName;
+    @Column(unique = true, nullable = false)
+    private String userName;
 
-    @Getter
-    private String lastName;
-
-    @Getter
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Getter
-    @Column(length = 60)
+    @Column(nullable = false)
     private String password;
 
-    @Getter
-    private boolean enabled;
+    @Column(nullable = false)
+    private Boolean enabled = true;
 
-    @Getter
-    private String secret;
+    private int strikeBest;
 
-    @ManyToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.LAZY)
-    @JoinTable(name = "users_roles", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "role_id") })
-    protected List<Role> roles = new ArrayList<Role>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Strike strikeCurrent = Strike.NONE;
 
-    public User() {
-        this.enabled = false;
-    }
+    private int experience;
 
-    public void setId(final Long id) {
-        this.id = id;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Level level = Level.LEVEL_1;
 
-    public void setFirstName(final String firstName) {
-        this.firstName = firstName;
-    }
 
-    public void setLastName(final String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(final String username) {
-        this.email = username;
-    }
-
-    public void setPassword(final String password) {
-        this.password = password;
-    }
-
-    public Collection<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(final List<Role> roles) {
-        this.roles = roles;
-    }
-
-    public void setEnabled(final boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Bez ról - zwracamy pustą kolekcję
+        return Collections.emptyList();
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = (prime * result) + ((getEmail() == null) ? 0 : getEmail().hashCode());
-        return result;
+    public String getPassword() {
+        return this.password;
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final User user = (User) obj;
-        if (!getEmail().equals(user.getEmail())) {
-            return false;
-        }
+    public String getUsername() {
+        return this.userName;
+    }
+
+
+    @Override
+    public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("User [id=")
-                .append(id)
-                .append(", firstName=").append(firstName)
-                .append(", lastName=").append(lastName)
-                .append(", email=").append(email)
-                .append(", enabled=").append(enabled)
-                .append("]");
-        return builder.toString();
+    public boolean isAccountNonLocked() {
+        return true;
     }
 
-    public UserResponseDto toDto() {
-        return new UserResponseDto(firstName, lastName);
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
+
+    @Override
+    public boolean isEnabled() {
+        return this.enabled != null ? this.enabled : true;
+    }
+
+    
 
 }

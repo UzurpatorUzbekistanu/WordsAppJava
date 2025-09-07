@@ -50,21 +50,27 @@ public class SynonymService {
             throw new IllegalArgumentException("English word not found: " + englishWord);
         }
     }
-// PONIZEJ PRAWDOPODOBNIE BLEDNIE ODWOLUJESZ SIE DO POLISH WORD
+
+    public boolean checkIfSynonymExistsInDatabase(long englishWordId) {
+        return englishSynonymsRepository.existsByEnglishWordId(englishWordId);
+    }
+
     public boolean checkIfSynonymExistsInDatabase(String polishWord) {
         Optional<EnglishWord> englishWord = englishWordRepository.findByWord(polishWord);
-        Long englishWordId = 0L;
         if(englishWord.isPresent()){
-            englishWordId = (long) englishWord.get().getId().intValue();
+            long englishWordId = englishWord.get().getId();
+            englishSynonymsRepository.existsByEnglishWordId(englishWordId);
+        } else {
+            return false;
         }
-        return englishSynonymsRepository.existsByEnglishWordId(englishWordId);
+        return false;
     }
 
     public String getSynonyms(String polishWord) {
         Optional<EnglishWord> englishWord = englishWordRepository.findByWord(polishWord);
-        Long englishWordId = 0L;
+        long englishWordId = 0L;
         if(englishWord.isPresent()){
-            englishWordId = (long) englishWord.get().getId().intValue();
+            englishWordId = (long) englishWord.get().getId();
         }
         List<EnglishSynonyms> synonymsList = englishSynonymsRepository.findByEnglishWordId(englishWordId);
 

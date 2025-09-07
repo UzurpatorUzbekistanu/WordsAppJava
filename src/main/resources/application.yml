@@ -22,3 +22,6 @@ server:
         secure: false
         http-only: true
         same-site: lax
+
+app:
+  base-exp: 5 # Podstawowa wartość doświadczenia
