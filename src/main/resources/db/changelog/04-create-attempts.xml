@@ -25,6 +25,8 @@
             <column name="correct_answers" type="INT"/>
             <column name="wrong_answers" type="INT"/>
             <column name="level" type="INT"/>
+            <column name="experience_gained" type="int" />
+            <column name="with_strike" type="int" />
         </createTable>
 
         <addAutoIncrement tableName="attempts" columnName="id" />

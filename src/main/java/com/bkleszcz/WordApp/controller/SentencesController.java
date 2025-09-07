@@ -1,8 +1,12 @@
 package com.bkleszcz.WordApp.controller;
 
 import com.bkleszcz.WordApp.config.ApiUsageCounterScheduler;
+import com.bkleszcz.WordApp.model.EnglishWord;
+import com.bkleszcz.WordApp.service.GuessingService;
 import com.bkleszcz.WordApp.service.SentencesService;
 import com.bkleszcz.WordApp.service.SynonymService;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +21,14 @@ public class SentencesController {
   private final SentencesService sentencesService;
   private final SynonymController synonymController;
   private final SynonymService synonymService;
+  private final GuessingService guessingService;
 
   @Autowired
-  public SentencesController(SentencesService sentencesService, SynonymController synonymController, SynonymService synonymService) {
+  public SentencesController(SentencesService sentencesService, SynonymController synonymController, SynonymService synonymService, GuessingService guessingService) {
     this.sentencesService = sentencesService;
       this.synonymController = synonymController;
       this.synonymService = synonymService;
+      this.guessingService = guessingService;
   }
 
   @GetMapping("/sentences")
@@ -51,4 +57,8 @@ public class SentencesController {
 
   }
 
+  @GetMapping("/Hint")
+  public ResponseEntity<String[]> getHint (@RequestParam String polishWord){
+    return ResponseEntity.ok(guessingService.getHints(guessingService.getEntityOfPolishWord(polishWord)));
+  }
 }

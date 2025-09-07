@@ -42,12 +42,11 @@ public class SentencesService {
     String englishWordString = "";
 
     Optional<PolishWord> polishWordEntity = polishWordRepository.findByWord(polishWord);
-    int polishWordId = polishWordEntity.get().getId();
+    Integer polishWordId = polishWordEntity.map(PolishWord::getId).orElse(null);
     Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(polishWordId);
     if (idEnglish.isPresent()) {
-      // Znajdź angielskie słowo po jego id
       Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
-      englishWordString = englishWord.get().getWord();
+      englishWordString = englishWord.map(EnglishWord::getWord).orElse(null);
     }
     return englishWordString;
   }
