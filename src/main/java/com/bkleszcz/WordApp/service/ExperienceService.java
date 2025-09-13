@@ -19,23 +19,27 @@ public class ExperienceService {
         user.setStrikeCurrent(user.getStrikeCurrent().nextStrike());
     }
 
-    private void increaseUserExperience(User user) {
-        user.setExperience(user.getExperience() + getReachedExp(user));
+    private int increaseUserExperience(User user) {
+        int experienceGained = getReachedExp(user);
+        user.setExperience(user.getExperience() + experienceGained);
         Level updatedLevel = Level.getNextLevelForExperience(user.getExperience(), user.getLevel());
         user.setLevel(updatedLevel);
+        return experienceGained;
     }
 
     private void resetStrike(User user) {
         user.setStrikeCurrent(user.getStrikeCurrent().resetStrike());
     }
 
-    public void doUserExperienceGainedAndStrike(boolean isCorrect, User user){
+    public int doUserExperienceGainedAndStrike(boolean isCorrect, User user){
+        int experienceGained = 0;
+
         if(isCorrect){
-            increaseUserExperience(user);
+            experienceGained = increaseUserExperience(user);
             increaseStrike(user);
         } else {
             resetStrike(user);
         }
+        return experienceGained;
     }
-
 }

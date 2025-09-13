@@ -9,13 +9,14 @@ import com.bkleszcz.WordApp.model.Attempts;
 import com.bkleszcz.WordApp.domain.User;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.bkleszcz.WordApp.model.EnglishWord;
+import com.bkleszcz.WordApp.model.PolishWord;
 import com.bkleszcz.WordApp.model.dto.AttemptsDto;
+import lombok.Data;
+import lombok.Getter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,105 +44,40 @@ public class AttemptsService {
     this.experienceService = experienceService;
   }
 
-  public Long getCurrentUserId() {
+  public Long getLoggedUserId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication != null && authentication.isAuthenticated()
             && !(authentication.getPrincipal() instanceof String)) {
       Object principal = authentication.getPrincipal();
       if (principal instanceof UserDetails) {
-        String email = ((UserDetails) principal).getUsername();
-        return userRepository.findByEmail(email)
+        String username = ((UserDetails) principal).getUsername();
+        return userRepository.findByUserName(username)
                 .map(User::getId)
+                .orElse(null);
+      }
+    }
+    return 0L;
+  }
+
+  public User getLoggedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.isAuthenticated()
+            && !(authentication.getPrincipal() instanceof String)) {
+      Object principal = authentication.getPrincipal();
+      if (principal instanceof UserDetails) {
+        String username = ((UserDetails) principal).getUsername();
+        return userRepository.findByUserName(username)
                 .orElse(null);
       }
     }
     return null;
   }
 
-  public Long getLoggedUserId() {
-    return getCurrentUserId();
-  }
-
-
-  public void doAttempt(String polishWord, String englishWord, String loggedUser, boolean isCorrect) {
-    Long polishWordId = polishWordRepository.findByWord(polishWord)
-            .map(word -> word.getId().longValue())
-            .orElseThrow(() -> new NoSuchElementException("Polish word not found"));
-
-    Optional<User> userOptional = userRepository.findById(getCurrentUserId());
-
-    if (userOptional.isEmpty()) {
-      return; // użytkownik niezalogowany
-    }
-
-    Long englishWordId = null;
-    if (isCorrect) {
-      englishWordId = englishWordRepository.findByWord(englishWord)
-              .map(word -> word.getId().longValue())
-              .orElseThrow(() -> new NoSuchElementException("English word not found"));
-      experienceService.doUserExperienceGainedAndStrike(true, userOptional.get());
-    } else {
-      Optional<Integer> englishWordOptionalId = polishEnglishWordRepository.findByPolishWordId(polishWordId.intValue());
-      englishWordId = englishWordOptionalId
-              .map(Integer::longValue)
-              .orElseThrow(() -> new NoSuchElementException("No English word found for Polish word ID: " + polishWordId));
-      experienceService.doUserExperienceGainedAndStrike(false, userOptional.get());
-    }
-
-    // Pozostała logika bez zmian...
+  public Date getDateToday(){
     LocalDate localDate = LocalDate.now();
-    Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-    Optional<Attempts> attempt = attemptsRepository.findByPolishWord_IdAndAppUser_Id(polishWordId, userOptional.get().getId());
-    if (attempt.isPresent()) {
-      updateAttempt(attempt.get(), date, isCorrect);
-    } else {
-      createAttempt(polishWordId, englishWordId, userOptional.get().getId(), date, isCorrect);
-    }
+      return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
-
-
-
-  private void updateAttempt(Attempts attempt, Date date, boolean isCorrect) {
-    attempt.setDateLastTry(date);
-    attempt.setNumberOfAttempts(attempt.getNumberOfAttempts() + 1);
-    if (isCorrect){
-      attempt.setDateLastSuccess(date);
-      attempt.setCorrectAnswers(attempt.getCorrectAnswers() + 1);
-      attempt.setLevel(attempt.getLevel() + 1);
-    }
-    else {
-      attempt.setWrongAnswers(attempt.getWrongAnswers() + 1);
-
-      if (attempt.getLevel() > 0){
-        attempt.setLevel(attempt.getLevel() - 1);
-      }
-    }
-
-    attempt.setDateRepeat(generateDateRepeat(attempt.getLevel()));
-
-    attemptsRepository.save(attempt);
-  }
-
-  private void createAttempt(long polishWordId, long englishWordId, long userId, Date date, boolean isCorrect){
-
-    Attempts newAttempt = Attempts.builder()
-        .polishWord(polishWordRepository.findById(polishWordId).get())
-        .englishWord(englishWordRepository.findById(englishWordId).get())
-        .appUser(userRepository.findById(userId).get())
-        .dateLastTry(date)
-        .dateLastSuccess(isCorrect ? date : null)
-        .numberOfAttempts(1)
-        .correctAnswers(isCorrect ? 1 : 0)
-        .wrongAnswers(isCorrect ? 0 : 1)
-        .level(isCorrect ? 1 : 0)
-        .dateRepeat(generateDateRepeat(1))
-        .build();
-
-    attemptsRepository.save(newAttempt);
-
-  }
 
   private Date generateDateRepeat(int level) {
     LocalDate localDate = LocalDate.now();
@@ -174,21 +110,6 @@ public class AttemptsService {
       return Date.from(localDateRepeat.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
-  public String getLoggedUsername() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication != null && authentication.isAuthenticated()
-        && !(authentication.getPrincipal() instanceof String)) {
-
-      Object principal = authentication.getPrincipal();
-
-      if (principal instanceof UserDetails) {
-        return ((UserDetails) principal).getUsername();
-      }
-    }
-    return null;
-  }
-
   public List<Attempts> getAllAttemptsByUserId(Long userId) {
     return attemptsRepository.findByAppUserId(userId);
   }
@@ -196,17 +117,107 @@ public class AttemptsService {
   public List<AttemptsDto> getAttemptsDtosByUserId(Long userId) {
     List<Attempts> attempts = attemptsRepository.findByAppUserId(userId);
     return attempts.stream()
-            .map(this::convertToDto)
+            .map(this::convertToDtoForPersonallyUserStatistic)
             .collect(Collectors.toList());
   }
 
-  private AttemptsDto convertToDto(Attempts attempt) {
+  public List<AttemptsDto> getYearlyAttemptsDtos(){
+    List<Attempts> attempts = attemptsRepository.findByDateLastTryAfterAndIsCorrectAnswerTrue(getDateYearEarlier());
+    return attempts.stream()
+            .map(this::convertToDtoForExperienceStatistic)
+            .collect(Collectors.toList());
+  }
+
+  private AttemptsDto convertToDtoForPersonallyUserStatistic(Attempts attempt) {
     AttemptsDto dto = new AttemptsDto();
     dto.setUserId(attempt.getAppUser().getId());
     dto.setExperienceGained(attempt.getExperienceGained());
     dto.setDateLastTry(attempt.getDateLastTry());
-    dto.setLevel(attempt.getLevel());
+    dto.setLevel(attempt.getLevelOfKnowledge());
     dto.setWithStrike(attempt.getWithStrike());
     return dto;
+  }
+
+  private  AttemptsDto convertToDtoForExperienceStatistic (Attempts attempt) {
+    AttemptsDto dto = new AttemptsDto();
+    dto.setUserId(attempt.getId());
+    dto.setExperienceGained(attempt.getExperienceGained());
+    dto.setDateLastTry(attempt.getDateLastTry());
+    return dto;
+  }
+
+
+  private Date getDateYearEarlier(){
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.DAY_OF_YEAR, -365);
+    return calendar.getTime();
+  }
+
+  public AttemptResult doAttempt(String polishWord, String englishWord, boolean isCorrect){
+
+    PolishWord polishWordEntity = polishWordRepository.findFirstByWord(polishWord).get();
+    EnglishWord englishWordEntity = englishWordRepository.findFirstByWord(englishWord).get();
+    User userApi = getLoggedUser();
+    Date date = getDateToday();
+    int numberOfAttempts = attemptsRepository.countByPolishWordIdAndEnglishWordIdAndAppUser_Id(
+            polishWordEntity.getId(),
+            englishWordEntity.getId(),
+            userApi.getId()
+    ) + 1;
+
+    Optional<Attempts> newestAttemptOfThisWord = attemptsRepository.findFirstByPolishWordIdAndEnglishWordIdAndAppUser_IdOrderByDateLastTryDesc(
+            polishWordEntity.getId(),
+            englishWordEntity.getId(),
+            userApi.getId()
+    );
+
+    int correctAnswers = (isCorrect ? 1 : 0);
+    int wrongAnswers = (isCorrect ? 0 : 1);
+    int levelOfKnowledge = (isCorrect ? 1 : 0);
+    Date dateLastSucces = date;
+
+
+    if(newestAttemptOfThisWord.isPresent()){
+      correctAnswers = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 1 : 0);
+      wrongAnswers = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 0 : 1);
+      levelOfKnowledge = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 1 : 0);
+      dateLastSucces = isCorrect ? date : newestAttemptOfThisWord.get().getDateLastSuccess();
+    }
+
+    Date dateRepeat = generateDateRepeat(levelOfKnowledge);
+
+    int experienceGained = experienceService.doUserExperienceGainedAndStrike(isCorrect, userApi);
+
+
+    Attempts newAttempt = Attempts.builder()
+            .polishWord(polishWordEntity)
+            .englishWord(englishWordEntity)
+            .appUser(userApi)
+            .dateLastTry(date)
+            .dateLastSuccess(dateLastSucces)
+            .numberOfAttempts(numberOfAttempts)
+            .correctAnswers(isCorrect ? 1 : 0)
+            .wrongAnswers(isCorrect ? 0 : 1)
+            .levelOfKnowledge(isCorrect ? 1 : 0)
+            .dateRepeat(dateRepeat)
+            .experienceGained(experienceGained)
+            .level(userApi.getLevel().getNumber())
+            .withStrike(userApi.getStrikeCurrent().getStrikeCount())
+            .isCorrectAnswer(isCorrect)
+            .build();
+
+    attemptsRepository.save(newAttempt);
+    return new AttemptResult(experienceGained, userApi.getStrikeCurrent().getStrikeCount());
+  }
+
+  @Data
+  public static class AttemptResult {
+    private final int experienceGained;
+    private final int currentStrike;
+
+    public AttemptResult(int experienceGained, int currentStrike) {
+      this.experienceGained = experienceGained;
+      this.currentStrike = currentStrike;
+    }
   }
 }

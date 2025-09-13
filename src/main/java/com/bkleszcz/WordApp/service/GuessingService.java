@@ -74,7 +74,7 @@ public class GuessingService {
   }
 
   private int getIdOfPolishWord(String polishWord) {
-    Optional<PolishWord> polish = polishWordRepository.findByWord(polishWord);
+    Optional<PolishWord> polish = polishWordRepository.findFirstByWord(polishWord);
     if(polish.isPresent()){
       return polish.get().getId();
     }else {
@@ -83,7 +83,7 @@ public class GuessingService {
   }
 
   public PolishWord getEntityOfPolishWord (String polishWord){
-    Optional<PolishWord> polishWordOptional = polishWordRepository.findByWord(polishWord);
+    Optional<PolishWord> polishWordOptional = polishWordRepository.findFirstByWord(polishWord);
 
     return polishWordOptional.orElse(null);
   }

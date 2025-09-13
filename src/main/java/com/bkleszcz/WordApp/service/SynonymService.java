@@ -36,7 +36,7 @@ public class SynonymService {
 
     public void setSynonymsIntoDatabase(WordResponse wordResponse, String englishWord) {
 
-        Optional<EnglishWord> englishWordEntityOptional = englishWordRepository.findByWord(englishWord);
+        Optional<EnglishWord> englishWordEntityOptional = englishWordRepository.findFirstByWord(englishWord);
         if (englishWordEntityOptional.isPresent()) {
             EnglishWord englishWordEntity = englishWordEntityOptional.get();
 
@@ -56,7 +56,7 @@ public class SynonymService {
     }
 
     public boolean checkIfSynonymExistsInDatabase(String polishWord) {
-        Optional<EnglishWord> englishWord = englishWordRepository.findByWord(polishWord);
+        Optional<EnglishWord> englishWord = englishWordRepository.findFirstByWord(polishWord);
         if(englishWord.isPresent()){
             long englishWordId = englishWord.get().getId();
             englishSynonymsRepository.existsByEnglishWordId(englishWordId);
@@ -67,7 +67,7 @@ public class SynonymService {
     }
 
     public String getSynonyms(String polishWord) {
-        Optional<EnglishWord> englishWord = englishWordRepository.findByWord(polishWord);
+        Optional<EnglishWord> englishWord = englishWordRepository.findFirstByWord(polishWord);
         long englishWordId = 0L;
         if(englishWord.isPresent()){
             englishWordId = (long) englishWord.get().getId();

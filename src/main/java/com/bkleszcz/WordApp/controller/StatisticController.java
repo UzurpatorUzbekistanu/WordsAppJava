@@ -24,4 +24,8 @@ public class StatisticController {
         return attemptsService.getAttemptsDtosByUserId(userId);
     }
 
+    @GetMapping("/YearlyExperienceRank")
+    public List<AttemptsDto> getYearlyAttemptsStats(){
+        return attemptsService.getYearlyAttemptsDtos();
+    }
 }

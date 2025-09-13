@@ -45,7 +45,7 @@ public class RepeatService {
     User user = userOptional.get();
 
     List<Attempts> attemptsToRepeat = attemptsRepository
-            .findByAppUser_IdAndDateRepeatLessThanEqual(user.getId(), date);
+            .findByAppUser_IdAndDateRepeatLessThanEqualAndIsRepeatedFalse(user.getId(), date);
 
     if (attemptsToRepeat.isEmpty()) {
       return "nie masz powtórek na dziś";

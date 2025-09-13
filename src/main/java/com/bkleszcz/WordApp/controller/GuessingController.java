@@ -1,11 +1,14 @@
 package com.bkleszcz.WordApp.controller;
 
+import com.bkleszcz.WordApp.model.dto.GuessCheckResponse;
 import com.bkleszcz.WordApp.service.AttemptsService;
 import com.bkleszcz.WordApp.service.GuessingService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -31,16 +34,28 @@ public class GuessingController {
     return ResponseEntity.ok(words);
   }
 
+  @GetMapping("/randomAuth")
+  public ResponseEntity<List<String>> getRandomPolishWordAuth() {
+    List<String> words = new ArrayList<>();
+    words.add(guessingService.getRandomPolishWord());
+    return ResponseEntity.ok(words);
+  }
+
   @PostMapping("/check")
-  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest, Authentication authentication) {
+  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
+    boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
+    return ResponseEntity.ok(correct);
+  }
+
+  @PostMapping("/checkAuth")
+  public ResponseEntity<GuessCheckResponse> checkGuessAuth(@RequestBody CheckRequest checkRequest, Authentication authentication) {
     boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
 
-    if (authentication != null && authentication.isAuthenticated() &&
-            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
-      String loggedUser = authentication.getName(); // login użytkownika
-      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), loggedUser, correct);
-    }
-    return ResponseEntity.ok(correct);
+    AttemptsService.AttemptResult result = attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), correct);
+
+    GuessCheckResponse response = new GuessCheckResponse(correct, result.getExperienceGained(), result.getCurrentStrike());
+
+    return ResponseEntity.ok(response);
   }
 
 

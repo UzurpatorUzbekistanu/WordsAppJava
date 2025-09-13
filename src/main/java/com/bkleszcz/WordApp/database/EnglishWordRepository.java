@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EnglishWordRepository extends JpaRepository<EnglishWord, Long> {
 
-  Optional<EnglishWord> findByWord(String word);
+  Optional<EnglishWord> findFirstByWord(String word);
 
 
 }

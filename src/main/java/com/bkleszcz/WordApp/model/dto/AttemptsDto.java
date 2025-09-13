@@ -11,7 +11,7 @@ public class AttemptsDto {
     private int experienceGained;
     private int withStrike;
     private Date dateLastTry;
-
+    private boolean isCorrectAnswer;
 
 }
 

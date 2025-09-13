@@ -22,4 +22,13 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.hibernate.orm.jdbc.bind: DEBUG
+    org:
+      springframework:
+        web:
+          filter: DEBUG
+    com:
+      bkleszcz:
+        WordApp:
+          config:
+            JwtRequestFilter : DEBUG
 

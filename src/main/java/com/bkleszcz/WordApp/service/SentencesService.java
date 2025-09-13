@@ -29,7 +29,7 @@ public class SentencesService {
   public String[] getSentences(String englishWord) {
     String[] table = new String[2];
 
-    Optional<EnglishWord> englishWordEntity = englishWordRepository.findByWord(englishWord);
+    Optional<EnglishWord> englishWordEntity = englishWordRepository.findFirstByWord(englishWord);
     if(englishWordEntity.isPresent()){
       table[0] = englishWordEntity.get().getSentenceA1();
       table[1] = englishWordEntity.get().getSentenceHigher();
@@ -41,7 +41,7 @@ public class SentencesService {
   public String getCorrectEnglishWord(String polishWord) {
     String englishWordString = "";
 
-    Optional<PolishWord> polishWordEntity = polishWordRepository.findByWord(polishWord);
+    Optional<PolishWord> polishWordEntity = polishWordRepository.findFirstByWord(polishWord);
     Integer polishWordId = polishWordEntity.map(PolishWord::getId).orElse(null);
     Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(polishWordId);
     if (idEnglish.isPresent()) {
