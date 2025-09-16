@@ -47,34 +47,31 @@ public class GuessingController {
     return ResponseEntity.ok(correct);
   }
 
-  @PostMapping("/checkAuth")
-  public ResponseEntity<GuessCheckResponse> checkGuessAuth(@RequestBody CheckRequest checkRequest, Authentication authentication) {
-    boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
+  @PostMapping("/checkAuth")                             // endpoint z JWT
+  public ResponseEntity<GuessCheckResponse> checkGuessAuth(@RequestBody CheckRequest body                               // payload z frontu
+  ) {
+    String pl = body.getPolishWord();                              // PL z body
+    String en = body.getEnglishWord();                             // EN z body
+    boolean rawCorrect = guessingService.isCorrect(pl, en);        // sprawdź poprawność
+    boolean penalty = body.isHintPenalty();                        // flaga kary (>15%)
 
-    AttemptsService.AttemptResult result = attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), correct);
+    boolean toPersistAsCorrect = penalty ? false : rawCorrect;     // kara → zapis jako błędne
+    GuessCheckResponse dto = attemptsService                       // zapisz + zbuduj DTO
+            .doAttemptAndBuildResponse(pl, en, toPersistAsCorrect);    // serwis domenowy
 
-    GuessCheckResponse response = new GuessCheckResponse(correct, result.getExperienceGained(), result.getCurrentStrike());
-
-    return ResponseEntity.ok(response);
+    if (penalty && rawCorrect) {                                   // trafił, ale z karą
+      dto.setCorrect(true);                                        // UI: „Correct”
+      dto.setExperienceGained(0);                                  // bez XP
+      // możesz też dodać dto.setHintPenaltyApplied(true) – jeśli masz to pole
+    }
+    return ResponseEntity.ok(dto);                                 // 200 OK
   }
 
 
-  @Getter
+  @Getter                                                  // auto-gettery
   public static class CheckRequest {
-      private String polishWord;
-    private String englishWord;
-    private String loggedUser;
-
-      public void setPolishWord(String polishWord) {
-      this.polishWord = polishWord;
-    }
-
-      public void setEnglishWord(String englishWord) {
-      this.englishWord = englishWord;
-    }
-
-      public void setLoggedUser(String loggedUser) {
-      this.loggedUser = loggedUser;
-    }
+    private String polishWord;                             // PL
+    private String englishWord;                            // EN (wpis usera)
+    private boolean hintPenalty;                           // ⬅️ czy przekroczono 15%
   }
 }

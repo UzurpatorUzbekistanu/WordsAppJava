@@ -82,6 +82,5 @@ public class User implements UserDetails {
         return this.enabled != null ? this.enabled : true;
     }
 
-    
 
 }

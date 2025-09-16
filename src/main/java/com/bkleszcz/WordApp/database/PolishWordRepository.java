@@ -10,4 +10,5 @@ public interface PolishWordRepository extends JpaRepository<PolishWord, Long> {
 
   Optional<PolishWord> findFirstByWord(String word);
 
+
 }

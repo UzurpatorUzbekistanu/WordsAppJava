@@ -12,4 +12,6 @@ public interface EnglishSynonymsRepository extends JpaRepository<EnglishSynonyms
     List<EnglishSynonyms> findByEnglishWordId(Long englishWordId);
 
     boolean existsByEnglishWordId(Long englishWordId);
+
+    boolean existsByEnglishWordIdAndSynonymIgnoreCase(Long englishWordId, String synonym);
 }

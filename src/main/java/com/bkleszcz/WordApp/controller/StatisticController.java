@@ -1,11 +1,10 @@
 package com.bkleszcz.WordApp.controller;
 
 import com.bkleszcz.WordApp.model.dto.AttemptsDto;
+import com.bkleszcz.WordApp.model.dto.DailyStatsDto;
+import com.bkleszcz.WordApp.model.dto.StatsSummaryDto;
 import com.bkleszcz.WordApp.service.AttemptsService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,4 +27,17 @@ public class StatisticController {
     public List<AttemptsDto> getYearlyAttemptsStats(){
         return attemptsService.getYearlyAttemptsDtos();
     }
+
+    @GetMapping("/user/{userId}/daily")
+    public List<DailyStatsDto> getDaily(@PathVariable Long userId) {
+        return attemptsService.getDailyStats(userId);
+    }
+
+    @GetMapping("/user/{userId}/summary")
+    public StatsSummaryDto getSummary(@PathVariable Long userId,
+                                      @RequestParam(required = false, defaultValue = "daily") String range) {
+        return attemptsService.getSummaryForUser(userId, range);
+    }
+
+
 }

@@ -1,18 +1,18 @@
 package com.bkleszcz.WordApp.controller;
 
 import com.bkleszcz.WordApp.config.ApiUsageCounterScheduler;
-import com.bkleszcz.WordApp.model.EnglishWord;
 import com.bkleszcz.WordApp.service.GuessingService;
 import com.bkleszcz.WordApp.service.SentencesService;
 import com.bkleszcz.WordApp.service.SynonymService;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping("/get")
@@ -38,22 +38,22 @@ public class SentencesController {
   }
 
   @GetMapping("/correctEnglishWord")
-  public ResponseEntity<String> getCorrectEnglishWord(@RequestParam String polishWord) {
+  public ResponseEntity<List<String>> getCorrectEnglishWord(@RequestParam String polishWord) {
 
     String englishWord = sentencesService.getCorrectEnglishWord(polishWord);
 
     if(synonymService.checkIfSynonymExistsInDatabase(englishWord)){
         return ResponseEntity.ok(synonymService.getSynonyms(englishWord));
     }
-    if (ApiUsageCounterScheduler.getUsageCounter() < ApiUsageCounterScheduler.getMAX_USAGE()) {
+    if (ApiUsageCounterScheduler.getUsageCounter() < ApiUsageCounterScheduler.getMaxUsage()) {
       try {
-       synonymController.getSynonyms(englishWord);
+       synonymController.fetch(englishWord);
        return ResponseEntity.ok(synonymService.getSynonyms(englishWord));
       } catch (Exception e) {
-        return ResponseEntity.ok(sentencesService.getCorrectEnglishWord(polishWord));
+        return ResponseEntity.ok(Collections.singletonList(sentencesService.getCorrectEnglishWord(polishWord)));
       }
     }
-    return ResponseEntity.ok(sentencesService.getCorrectEnglishWord(polishWord));
+    return ResponseEntity.ok(Collections.singletonList(sentencesService.getCorrectEnglishWord(polishWord)));
 
   }
 

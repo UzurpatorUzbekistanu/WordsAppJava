@@ -1,16 +1,16 @@
-package com.bkleszcz.WordApp.model.dto;
+// GuessCheckResponse.java  (jeśli już masz – tylko dopisz pola)
+package com.bkleszcz.WordApp.model.dto;          // pakiet DTO
 
-import lombok.Data;
+import lombok.*;
+import java.util.List;
 
-@Data
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class GuessCheckResponse {
-    private boolean correct;
-    private int experienceGained;
-    private int currentStrike;
-
-    public GuessCheckResponse(boolean correct, int experienceGained, int currentStrike) {
-        this.correct = correct;
-        this.experienceGained = experienceGained;
-        this.currentStrike = currentStrike;
-    }
+    private boolean correct;               // czy trafił EN (informacyjnie dla UI)
+    private int currentStrike;             // strike po zapisie
+    private int experienceGained;          // XP za próbę
+    private List<String> canonicalEnglish; // poprawne EN (gdy pudło)
+    private List<String> synonyms;         // synonimy (opcjonalnie)
+    private LevelInfoDto level;            // pasek z backendu
+    private boolean hintPenaltyApplied;    // ⬅️ czy zastosowano karę
 }

@@ -8,13 +8,15 @@ import com.bkleszcz.WordApp.database.userRepository.UserRepository;
 import com.bkleszcz.WordApp.model.Attempts;
 import com.bkleszcz.WordApp.domain.User;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import com.bkleszcz.WordApp.model.EnglishWord;
+import com.bkleszcz.WordApp.model.PolishEnglishWord;
 import com.bkleszcz.WordApp.model.PolishWord;
-import com.bkleszcz.WordApp.model.dto.AttemptsDto;
+import com.bkleszcz.WordApp.model.dto.*;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
@@ -153,52 +155,66 @@ public class AttemptsService {
     return calendar.getTime();
   }
 
-  public AttemptResult doAttempt(String polishWord, String englishWord, boolean isCorrect){
+  public AttemptResult doAttempt(String polishWord, String englishWordTyped, boolean isCorrect) {
 
-    PolishWord polishWordEntity = polishWordRepository.findFirstByWord(polishWord).get();
-    EnglishWord englishWordEntity = englishWordRepository.findFirstByWord(englishWord).get();
-    User userApi = getLoggedUser();
-    Date date = getDateToday();
-    int numberOfAttempts = attemptsRepository.countByPolishWordIdAndEnglishWordIdAndAppUser_Id(
-            polishWordEntity.getId(),
-            englishWordEntity.getId(),
-            userApi.getId()
-    ) + 1;
+    // 1) Znajdź polskie hasło — jeśli brak, przerwij czytelnym błędem
+    PolishWord polishWordEntity = polishWordRepository.findFirstByWord(polishWord)
+            .orElseThrow(() -> new IllegalArgumentException("Polish word not found: " + polishWord));
 
-    Optional<Attempts> newestAttemptOfThisWord = attemptsRepository.findFirstByPolishWordIdAndEnglishWordIdAndAppUser_IdOrderByDateLastTryDesc(
-            polishWordEntity.getId(),
-            englishWordEntity.getId(),
-            userApi.getId()
-    );
-
-    int correctAnswers = (isCorrect ? 1 : 0);
-    int wrongAnswers = (isCorrect ? 0 : 1);
-    int levelOfKnowledge = (isCorrect ? 1 : 0);
-    Date dateLastSucces = date;
-
-
-    if(newestAttemptOfThisWord.isPresent()){
-      correctAnswers = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 1 : 0);
-      wrongAnswers = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 0 : 1);
-      levelOfKnowledge = newestAttemptOfThisWord.get().getCorrectAnswers() + (isCorrect ? 1 : 0);
-      dateLastSucces = isCorrect ? date : newestAttemptOfThisWord.get().getDateLastSuccess();
+    // 2) Ustal angielskie słowo do ZAPISU w próbie:
+    //    - jeśli odpowiedź poprawna → to, co wpisał user (mamy je w bazie)
+    //    - jeśli odpowiedź błędna → weź POPRAWNE przypisane do polskiego słowa
+    EnglishWord englishWordEntity;
+    if (isCorrect) {
+      // jeśli odpowiedź dobra → to co wpisał user (bo istnieje w bazie)
+      englishWordEntity = englishWordRepository.findFirstByWord(englishWordTyped)
+              .orElseThrow(() -> new IllegalArgumentException("English word not found: " + englishWordTyped));
+    } else {
+      // jeśli błędna → pobierz poprawne angielskie słowo powiązane z PolishWord
+      englishWordEntity = polishEnglishWordRepository
+              .findFirstByPolishWordId(Long.valueOf(polishWordEntity.getId()))
+              .map(PolishEnglishWord::getEnglishWord) // teraz już działa
+              .orElseThrow(() -> new IllegalStateException("No English mapping for: " + polishWord));
     }
 
-    Date dateRepeat = generateDateRepeat(levelOfKnowledge);
+    User userApi = getLoggedUser();                                       // jak było
+    Date date = getDateToday();                                           // jak było
+    int numberOfAttempts = attemptsRepository
+            .countByPolishWordIdAndEnglishWordIdAndAppUser_Id(
+                    polishWordEntity.getId(), englishWordEntity.getId(), userApi.getId()
+            ) + 1;
 
-    int experienceGained = experienceService.doUserExperienceGainedAndStrike(isCorrect, userApi);
+    Optional<Attempts> newestAttemptOfThisWord = attemptsRepository
+            .findFirstByPolishWordIdAndEnglishWordIdAndAppUser_IdOrderByDateLastTryDesc(
+                    polishWordEntity.getId(), englishWordEntity.getId(), userApi.getId()
+            );
 
+    int correctAnswers = (isCorrect ? 1 : 0);
+    int wrongAnswers   = (isCorrect ? 0 : 1);
+    int levelOfKnowledge = (isCorrect ? 1 : 0);
+    Date dateLastSuccess = isCorrect ? date : null;
+
+    if (newestAttemptOfThisWord.isPresent()) {
+      Attempts prev = newestAttemptOfThisWord.get();
+      correctAnswers   = prev.getCorrectAnswers() + (isCorrect ? 1 : 0);  // ✅ bazuj na poprzednich
+      wrongAnswers     = prev.getWrongAnswers()   + (isCorrect ? 0 : 1);  // ✅ U CIEBIE BYŁO getCorrectAnswers() — błąd
+      levelOfKnowledge = prev.getLevelOfKnowledge() + (isCorrect ? 1 : 0);// ✅ U CIEBIE BYŁO getCorrectAnswers() — błąd
+      dateLastSuccess  = isCorrect ? date : prev.getDateLastSuccess();     // ✅ nie nadpisuj przy błędnej
+    }
+
+    Date dateRepeat = generateDateRepeat(levelOfKnowledge);                // jak było
+    int experienceGained = experienceService.doUserExperienceGainedAndStrike(isCorrect, userApi); // jak było
 
     Attempts newAttempt = Attempts.builder()
             .polishWord(polishWordEntity)
-            .englishWord(englishWordEntity)
+            .englishWord(englishWordEntity)           // ✅ zawsze istniejący encja EnglishWord
             .appUser(userApi)
             .dateLastTry(date)
-            .dateLastSuccess(dateLastSucces)
+            .dateLastSuccess(dateLastSuccess)
             .numberOfAttempts(numberOfAttempts)
-            .correctAnswers(isCorrect ? 1 : 0)
-            .wrongAnswers(isCorrect ? 0 : 1)
-            .levelOfKnowledge(isCorrect ? 1 : 0)
+            .correctAnswers(correctAnswers)           // ✅ użyj skumulowanych wartości
+            .wrongAnswers(wrongAnswers)               // ✅ użyj skumulowanych wartości
+            .levelOfKnowledge(levelOfKnowledge)       // ✅ użyj skumulowanej wiedzy
             .dateRepeat(dateRepeat)
             .experienceGained(experienceGained)
             .level(userApi.getLevel().getNumber())
@@ -210,6 +226,53 @@ public class AttemptsService {
     return new AttemptResult(experienceGained, userApi.getStrikeCurrent().getStrikeCount());
   }
 
+  public List<DailyStatsDto> getDailyStats(Long userId) {          // staty dla usera
+    List<Attempts> attempts = attemptsRepository.findByAppUserId(userId); // wszystkie próby
+    return attempts.stream()                                       // strumień prób
+            .collect(Collectors.groupingBy(a ->                         // grupuj po LocalDate
+                    a.getDateLastTry().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+            ))
+            .entrySet().stream()                                         // przejdź po grupach
+            .map(e -> {                                                  // zbuduj DTO
+              var date = e.getKey();                                     // data dnia
+              var list = e.getValue();                                   // próby w dniu
+              long correct = list.stream().filter(Attempts::isCorrectAnswer).count(); // policz poprawne
+              long incorrect = list.size() - correct;                    // policz błędne
+              return new DailyStatsDto(date.toString(), correct, incorrect); // DTO
+            })
+            .sorted(Comparator.comparing(DailyStatsDto::getDate))        // posortuj po dacie
+            .collect(Collectors.toList());                               // zwróć listę
+  }
+
+  public StatsSummaryDto getSummaryForUser(Long userId, String range) { // zwraca staty do tabeli
+    var attempts = attemptsRepository.findByAppUserId(userId);          // pobierz wszystkie próby
+    // 1) wylicz datę startu okna (daily/weekly/monthly/total)
+    LocalDateTime from = switch (range == null ? "daily" : range.toLowerCase()) {
+      case "weekly"  -> LocalDateTime.now().minusDays(7);
+      case "monthly" -> LocalDateTime.now().minusDays(30);
+      case "total"   -> null;                                           // brak filtra daty
+      default        -> LocalDateTime.now().toLocalDate().atStartOfDay();// dziś od 00:00
+    };
+    // 2) przefiltruj po dacie jeśli potrzeba
+    var filtered = attempts.stream().filter(a -> {
+      if (from == null) return true;                                    // total = wszystko
+      var when = a.getDateLastTry().toInstant()
+              .atZone(ZoneId.systemDefault()).toLocalDateTime();            // konwersja na LDT
+      return !when.isBefore(from);                                      // >= from
+    }).toList();
+
+    // 3) policz metryki
+    long attemptsNew       = filtered.stream().filter(a -> a.getNumberOfAttempts() == 1).count();
+    long correct           = filtered.stream().filter(Attempts::isCorrectAnswer).count();
+    long review            = filtered.stream().filter(a -> a.getNumberOfAttempts() > 1).count();
+    long completedReviews  = filtered.stream()
+            .filter(a -> a.getNumberOfAttempts() > 1 && a.isCorrectAnswer())
+            .count();
+
+    return new StatsSummaryDto(attemptsNew, correct, review, completedReviews); // 4) zwróć DTO
+  }
+
+
   @Data
   public static class AttemptResult {
     private final int experienceGained;
@@ -219,5 +282,42 @@ public class AttemptsService {
       this.experienceGained = experienceGained;
       this.currentStrike = currentStrike;
     }
+  }
+
+  public GuessCheckResponse doAttemptAndBuildResponse(        // metoda żądana przez kontroler
+                                                              String polishWord,                                      // PL ze żądania
+                                                              String englishWord,                                     // EN z żądania
+                                                              boolean isCorrect                                       // wynik (po uwzgl. kary)
+  ) {
+    User user = getLoggedUser();                              // bieżący użytkownik
+    int levelBefore = user.getLevel().getNumber();            // numer levelu przed zapisem
+
+    AttemptResult ar = doAttempt(polishWord, englishWord, isCorrect); // zapis próby + XP/strike
+
+    LevelInfoDto lvl = experienceService.buildLevelInfo(user, levelBefore); // pasek/awans
+
+    List<String> canonicalEnglish = Collections.emptyList();  // lista poprawnych EN (gdy pudło)
+    if (!isCorrect) {                                         // tylko przy błędnej odpowiedzi
+      canonicalEnglish = findEnglishForPolish(polishWord);    // wyciągnij EN z relacji
+    }
+
+    return GuessCheckResponse.builder()                       // zbuduj DTO zwrotki
+            .correct(isCorrect)                                   // status poprawności
+            .currentStrike(ar.getCurrentStrike())                 // aktualny strike
+            .experienceGained(ar.getExperienceGained())           // zdobyty XP
+            .canonicalEnglish(canonicalEnglish)                   // poprawne EN (gdy pudło)
+            .level(lvl)                                           // info o levelu/pasku
+            .build();                                             // gotowe
+  }
+
+  private List<String> findEnglishForPolish(String polish) {  // pomocniczo: EN dla PL
+    return polishWordRepository.findFirstByWord(polish)       // znajdź encję PL
+            .map(pl -> polishEnglishWordRepository                // weź relacje PL→EN
+                    .findByPolishWord(pl))                          // (masz już taką metodę)
+            .orElse(Collections.emptyList())                      // brak → pusta lista
+            .stream()                                             // strumień relacji
+            .map(rel -> rel.getEnglishWord().getWord())           // zmapuj na tekst EN
+            .distinct()                                           // usuń duplikaty
+            .toList();                                            // zbierz do listy
   }
 }
