@@ -41,7 +41,7 @@ public class RepeatController {
     if (authentication != null && authentication.isAuthenticated() &&
             !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
       String loggedUser = authentication.getName(); // login użytkownika
-      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), loggedUser, correct);
+      attemptsService.doAttempt(checkRequest.getPolishWord(), checkRequest.getEnglishWord(), correct);
     }
     return ResponseEntity.ok(correct);
   }

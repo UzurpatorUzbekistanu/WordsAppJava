@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PolishWordRepository extends JpaRepository<PolishWord, Long> {
 
-  Optional<PolishWord> findByWord(String word);
+  Optional<PolishWord> findFirstByWord(String word);
+
 
 }

@@ -72,9 +72,16 @@ public class GuessingService {
   public String[] getHints(PolishWord polishWord) {
     return Objects.requireNonNull(getEnglishWordByPolishWord(polishWord)).split(" ");
   }
+  public boolean isCorrect(String polish, String english) {              // sprawdzenie poprawności
+    return polishEnglishWordRepository                                   // odpytywanie repo
+            .existsByPolishWord_WordIgnoreCaseAndEnglishWord_WordIgnoreCase( // złożone „exists”
+                    polish.trim(),                                               // PL (trymowane)
+                    english.trim()                                               // EN (trymowane)
+            );
+  }
 
   private int getIdOfPolishWord(String polishWord) {
-    Optional<PolishWord> polish = polishWordRepository.findByWord(polishWord);
+    Optional<PolishWord> polish = polishWordRepository.findFirstByWord(polishWord);
     if(polish.isPresent()){
       return polish.get().getId();
     }else {
@@ -83,7 +90,7 @@ public class GuessingService {
   }
 
   public PolishWord getEntityOfPolishWord (String polishWord){
-    Optional<PolishWord> polishWordOptional = polishWordRepository.findByWord(polishWord);
+    Optional<PolishWord> polishWordOptional = polishWordRepository.findFirstByWord(polishWord);
 
     return polishWordOptional.orElse(null);
   }

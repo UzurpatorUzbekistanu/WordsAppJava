@@ -35,7 +35,7 @@ public class Attempts {
   @JoinColumn(name = "user_id", nullable = false)
   private User appUser;
 
-  private int level;
+  private int levelOfKnowledge;
 
   private Date dateLastTry;
   private Date dateLastSuccess;
@@ -44,7 +44,10 @@ public class Attempts {
   private int correctAnswers;
   private int wrongAnswers;
   private int experienceGained;
+  private int level;
   private int withStrike;
+  private boolean isCorrectAnswer;
+  private boolean isRepeated;
 
 }
 

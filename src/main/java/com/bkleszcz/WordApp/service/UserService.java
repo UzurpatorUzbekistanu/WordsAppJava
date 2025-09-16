@@ -3,6 +3,8 @@ package com.bkleszcz.WordApp.service;
 import com.bkleszcz.WordApp.database.userRepository.UserRepository;
 import com.bkleszcz.WordApp.domain.User;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -45,5 +49,23 @@ public class UserService implements UserDetailsService {
     return userRepository.findAllByOrderByExperienceDesc(PageRequest.of(0,3));
   }
 
+
+    public Optional<User> findByUserName(String username) {
+      return userRepository.findByUserName(Objects.requireNonNull(getLoggedUser()).getUsername());
+    }
+
+  private User getLoggedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.isAuthenticated()
+            && !(authentication.getPrincipal() instanceof String)) {
+      Object principal = authentication.getPrincipal();
+      if (principal instanceof UserDetails) {
+        String username = ((UserDetails) principal).getUsername();
+        return userRepository.findByUserName(username)
+                .orElse(null);
+      }
+    }
+    return null;
+  }
 
 }

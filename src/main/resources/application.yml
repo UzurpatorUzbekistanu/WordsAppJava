@@ -1,27 +1,35 @@
-logging:
-  level:
-    org:
-      springframework:
-        boot: INFO  # Ustawia poziom logowania dla Spring Boota na INFO
-    com:
-      bkleszcz:
-        WordApp: INFO  # Ustawia poziom logowania dla Twojej aplikacji na DEBUG (dzięki temu będziesz miał więcej szczegółów)
-        WordApp.db: DEBUG  # Ustawia poziom logowania dla zapytań związanych z bazą danych na DEBUG
-    org.springframework.security: INFO  # Logowanie Spring Security, co pomoże zrozumieć problemy związane z 403 i bezpieczeństwem
+logging:                                      # konfiguracja logowania
+  level:                                      # poziomy logów per logger
+    root: INFO                                # domyślny poziom
+    org.springframework.boot: INFO            # logi Spring Boot
+    org.springframework.security: INFO        # logi Security
+    com.bkleszcz.WordApp: DEBUG               # Twoje pakiety (więcej szczegółów)
+    org.hibernate.SQL: DEBUG                  # zapytania SQL
+    org.hibernate.orm.jdbc.bind: TRACE        # parametry zapytań
 
-spring:
+spring:                                       # ustawienia Spring
   profiles:
-    active: local  # Aktywuje profil lokalny (dla lokalnej konfiguracji)
+    active: local                             # aktywny profil
   jpa:
     hibernate:
-      ddl-auto: update  # Automatyczne aktualizowanie schematu bazy danych
-server:
+      ddl-auto: update                        # auto-aktualizacja schematu
+    show-sql: false                           # SQL pokażemy loggerem, nie tu
+    properties:
+      hibernate.format_sql: true              # ładne formatowanie SQL
+
+server:                                       # serwer aplikacji
   servlet:
     session:
       cookie:
-        secure: false
-        http-only: true
-        same-site: lax
+        secure: false                         # lokalnie bez HTTPS
+        http-only: true                       # cookie niedostępne z JS
+        same-site: lax                        # ochrona przed CSRF
 
-app:
-  base-exp: 5 # Podstawowa wartość doświadczenia
+app:                                          # Twoje własne ustawienia
+  base-exp: 7                                 # bazowe XP (przykład)
+
+wordsapi:
+  key: "a72264e6abmshaed5de209a3cb89p16a60fjsn01395b5b2d10"
+  daily-limit: 1000
+
+

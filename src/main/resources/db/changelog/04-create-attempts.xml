@@ -24,9 +24,12 @@
             <column name="number_of_attempts" type="INT"/>
             <column name="correct_answers" type="INT"/>
             <column name="wrong_answers" type="INT"/>
-            <column name="level" type="INT"/>
+            <column name="level_of_knowledge" type="INT"/>
             <column name="experience_gained" type="int" />
             <column name="with_strike" type="int" />
+            <column name="level" type="int" />
+            <column name="is_correct_answer" type="boolean"/>
+            <column name="is_repeated" type="boolean"/>
         </createTable>
 
         <addAutoIncrement tableName="attempts" columnName="id" />

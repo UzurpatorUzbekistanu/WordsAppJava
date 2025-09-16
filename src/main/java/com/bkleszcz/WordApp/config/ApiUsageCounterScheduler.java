@@ -1,28 +1,47 @@
-package com.bkleszcz.WordApp.config;
-
+package com.bkleszcz.WordApp.config;                           // pakiet konfiguracyjny
 
 import lombok.Getter;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;      // wstrzykiwanie z properties
+import org.springframework.scheduling.annotation.Scheduled;     // planowanie zadań
+import org.springframework.stereotype.Component;                // komponent Springa
 
-@Component
-@EnableScheduling
-public class ApiUsageCounterScheduler {
+import java.time.LocalDate;                                     // data (bez czasu)
+import java.util.concurrent.atomic.AtomicInteger;               // bezpieczny licznik wielowątkowy
 
-    @Getter
-    private static int usageCounter = 0;
-    @Getter
-    private static final int MAX_USAGE = 2000;
+@Getter
+@Component                                                      // rejestruje bean w kontekście
+public class ApiUsageCounterScheduler {                         // klasa licznika
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void resetCounter() {
-        usageCounter = 0;
+    private static final AtomicInteger COUNTER = new AtomicInteger(0); // dzienny licznik zapytań
+    private static volatile LocalDate day = LocalDate.now();           // dzień, dla którego liczymy
 
+    private static int MAX;                                    // dzienny limit (wczytamy z properties)
+
+    public ApiUsageCounterScheduler(@Value("${wordsapi.daily-limit:1000}") int maxDaily) {  // pobierz wordsapi.daily-limit (domyślnie 1000)
+        MAX = maxDaily;                                           // ustaw limit globalnie
     }
 
-    public static void incrementUsageCounter() {
-        usageCounter++;
+
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/Warsaw")    // uruchom codziennie o 00:00 czasu PL
+    public void resetDailyCounter() {                           // metoda resetująca
+        COUNTER.set(0);                                           // wyzeruj licznik
+        day = LocalDate.now();                                    // ustaw bieżący dzień
     }
 
+    public static int incrementUsageCounter() {                 // zwiększ licznik o 1
+        return COUNTER.incrementAndGet();                         // zwróć wartość po inkrementacji
+    }
+
+    public static int getUsageCounter() {                       // odczytaj aktualny stan
+        return COUNTER.get();                                     // zwróć licznik
+    }
+
+    public static int getMaxUsage() {                           // odczytaj limit dzienny
+        return MAX;                                               // zwróć limit
+    }
+
+    public static LocalDate getDay() {                          // odczytaj dzień liczenia
+        return day;                                               // zwróć datę
+    }
 }

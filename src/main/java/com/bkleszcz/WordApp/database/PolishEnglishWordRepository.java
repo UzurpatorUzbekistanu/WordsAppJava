@@ -18,4 +18,13 @@ public interface PolishEnglishWordRepository extends JpaRepository<PolishEnglish
   @Query("SELECT p.englishWord.id FROM PolishEnglishWord p WHERE p.polishWord.id = :polishWordId")
   Optional<Integer> findByPolishWordId(@Param("polishWordId") Integer polishWordId);
 
+  Optional<PolishEnglishWord> findFirstByPolishWordId(Long polishWordId);
+
+  List<PolishEnglishWord> findAllByPolishWordId(Long polishWordId);
+
+  boolean existsByPolishWord_WordIgnoreCaseAndEnglishWord_WordIgnoreCase( // sygnatura zapytania złożonego
+                                                                          String polishWord,                                                   // polskie słowo
+                                                                          String englishWord                                                   // angielskie słowo
+  );
+
 }
