@@ -19,14 +19,12 @@ import java.util.List;
 public class SentencesController {
 
   private final SentencesService sentencesService;
-  private final SynonymController synonymController;
   private final SynonymService synonymService;
   private final GuessingService guessingService;
 
   @Autowired
   public SentencesController(SentencesService sentencesService, SynonymController synonymController, SynonymService synonymService, GuessingService guessingService) {
     this.sentencesService = sentencesService;
-      this.synonymController = synonymController;
       this.synonymService = synonymService;
       this.guessingService = guessingService;
   }
@@ -47,7 +45,6 @@ public class SentencesController {
     }
     if (ApiUsageCounterScheduler.getUsageCounter() < ApiUsageCounterScheduler.getMaxUsage()) {
       try {
-       synonymController.fetch(englishWord);
        return ResponseEntity.ok(synonymService.getSynonyms(englishWord));
       } catch (Exception e) {
         return ResponseEntity.ok(Collections.singletonList(sentencesService.getCorrectEnglishWord(polishWord)));

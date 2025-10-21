@@ -14,9 +14,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
 
@@ -27,17 +29,18 @@ public class SecurityConfig {
 
   private final JwtRequestFilter jwtRequestFilter;
 
-  // ⬇︎ DODAŁEM /UserApi/loggedUser
   private static final String[] PUBLIC = {
-          "/api/auth/**",
-          "/UserApi/create",
-          "/UserApi/loggedUser",
-          "/api/guess/random",
-          "/api/guess/check",
-          "/api/dictionary/**",
-          "/api/rank/**",
-          "/api/statistics/**",
-          "/error"
+          // bez prefixu (jeśli kiedyś odpalisz bez context-pathu /api)
+          "/auth/**", "/UserApi/create", "/UserApi/loggedUser",
+          "/guess/random", "/guess/check",
+          "/dictionary/**", "/rank/**", "/statistics/**",
+          "/error",
+          // z prefixem /api (obecny prod)
+          "/api/auth/**", "/api/UserApi/create", "/api/UserApi/loggedUser",
+          "/api/guess/random", "/api/guess/check",
+          "/api/dictionary/**", "/api/rank/**", "/api/statistics/**",
+          // opcjonalnie: health do szybkiej diagnostyki
+          "/actuator/health", "/api/actuator/health"
   };
 
   @Bean
@@ -47,7 +50,7 @@ public class SecurityConfig {
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     http.authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // preflight
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers(PUBLIC).permitAll()
             .anyRequest().authenticated()
     );
@@ -56,7 +59,7 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // Twój AuthenticationManager – zostawiamy
+
   @Bean
   AuthenticationManager authenticationManager(UserDetailsService uds, PasswordEncoder encoder) {
     var p = new DaoAuthenticationProvider();
@@ -68,13 +71,15 @@ public class SecurityConfig {
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     var cfg = new CorsConfiguration();
-    cfg.setAllowedOrigins(List.of("http://localhost:4200")); // dev Angular
+    cfg.setAllowedOriginPatterns(List.of(
+            "https://wordsapp.bieda.it", "http://wordsapp.bieda.it",
+            "http://localhost:*", "http://127.0.0.1:*"
+    ));
     cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-    cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With"));
+    cfg.setAllowedHeaders(List.of("*"));
     cfg.setExposedHeaders(List.of("Authorization"));
-    cfg.setAllowCredentials(false);
+    cfg.setAllowCredentials(true);
     cfg.setMaxAge(3600L);
-
     var src = new UrlBasedCorsConfigurationSource();
     src.registerCorsConfiguration("/**", cfg);
     return src;

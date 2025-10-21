@@ -28,8 +28,5 @@ server:                                       # serwer aplikacji
 app:                                          # Twoje własne ustawienia
   base-exp: 7                                 # bazowe XP (przykład)
 
-wordsapi:
-  key: "a72264e6abmshaed5de209a3cb89p16a60fjsn01395b5b2d10"
-  daily-limit: 1000
 
 

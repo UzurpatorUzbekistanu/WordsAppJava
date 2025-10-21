@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,9 +23,31 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private static final AntPathMatcher PM = new AntPathMatcher();
 
-    // @Lazy pomaga uniknąć cyklu zależności (UserService <-> Security)
+    /** Uwaga: BEZ /api — ścieżki względne do context-path (zadziała i z /api, i bez). */
+    private static final String[] PUBLIC = {
+            "auth/**",
+            "UserApi/create",
+            "UserApi/loggedUser",
+            "guess/random",
+            "guess/check",
+            "dictionary/**",
+            "rank/**",
+            "statistics/**",
+            "error",
+            "api/auth/**",
+            "api/UserApi/create",
+            "api/UserApi/loggedUser",
+            "api/guess/random",
+            "api/guess/check",
+            "api/dictionary/**",
+            "api/rank/**",
+            "api/statistics/**",
+            "get/sentences"
+    };
+
+    private final JwtUtil jwtUtil;
     private final @Lazy UserDetailsService userDetailsService;
 
     @Override
@@ -32,8 +55,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        // 1) Preflight zawsze wolny
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
 
+        // 2) PUBLIC bez autoryzacji JWT
+        String sp = request.getServletPath();             // np. "/rank/top"
+        String path = sp.startsWith("/") ? sp.substring(1) : sp;  // "rank/top"
+        for (String p : PUBLIC) {
+            if (PM.match(p, path)) {
+                chain.doFilter(request, response);
+                return;
+            }
+        }
+
+        // 3) Jeżeli brak nagłówka Authorization -> NIE rób 403, przepuść dalej
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
@@ -41,7 +80,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         final String token = authHeader.substring(7);
         String username;
-
         try {
             username = jwtUtil.extractUsername(token);
         } catch (Exception e) {
@@ -51,16 +89,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
             if (jwtUtil.validateToken(token, username)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+                var authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authToken);
-                SecurityContextHolder.setContext(context);
+                SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+                ctx.setAuthentication(authToken);
+                SecurityContextHolder.setContext(ctx);
             }
         }
 

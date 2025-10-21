@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+
+import com.bkleszcz.WordApp.model.dto.GuessCheckResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class GuessingService {
@@ -43,16 +46,15 @@ public class GuessingService {
   }
 
   public boolean checkTranslation(String polishWord, String englishWordGuess) {
-    
-      int idPolish = getIdOfPolishWord(polishWord);
-      Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(idPolish);
 
-      if (idEnglish.isPresent()) {
-        Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
+      Optional<EnglishWord> englishWord = getEnglishWordIdByPolishWord(polishWord);
 
-        if(synonymService.checkIfSynonymExistsInDatabase(idEnglish.get().longValue())){
+
+      if (englishWord.isPresent()) {
+
+        if(synonymService.checkIfSynonymExistsInDatabase(englishWord.get().getId().longValue())){
           boolean answerFlag = false;
-          List <EnglishSynonyms> possibleAnswersList = englishSynonymsRepository.findByEnglishWordId(Long.valueOf(idEnglish.get()));
+          List <EnglishSynonyms> possibleAnswersList = englishSynonymsRepository.findByEnglishWordId(Long.valueOf(englishWord.get().getId()));
 
           for(EnglishSynonyms possibleAnswer : possibleAnswersList){
             if(possibleAnswer.getEnglishWord().getWord().equalsIgnoreCase(englishWordGuess)){
@@ -66,19 +68,36 @@ public class GuessingService {
       } else {
         return false;
       }
-
   }
 
+  public GuessCheckResponse buildAndCheckResponseForUnauthenticatedUser(String polishWord, String englishWord){
+
+     GuessCheckResponse.GuessCheckResponseBuilder b = GuessCheckResponse.builder()
+            .correct(checkTranslation(polishWord, englishWord))
+            .currentStrike(0)
+            .experienceGained(0)
+            .canonicalEnglish(null)
+            .synonyms(null)
+            .level(null)
+            .hintPenaltyApplied(false);
+
+    return b.build();
+  }
   public String[] getHints(PolishWord polishWord) {
     return Objects.requireNonNull(getEnglishWordByPolishWord(polishWord)).split(" ");
   }
-  public boolean isCorrect(String polish, String english) {              // sprawdzenie poprawności
-    return polishEnglishWordRepository                                   // odpytywanie repo
-            .existsByPolishWord_WordIgnoreCaseAndEnglishWord_WordIgnoreCase( // złożone „exists”
-                    polish.trim(),                                               // PL (trymowane)
-                    english.trim()                                               // EN (trymowane)
-            );
+
+  private Optional<EnglishWord> getEnglishWordIdByPolishWord(String polishWord) {
+    int idPolish = getIdOfPolishWord(polishWord);
+    Optional<Integer> idEnglish = polishEnglishWordRepository.findByPolishWordId(idPolish);
+
+    if (idEnglish.isPresent()) {
+      Optional<EnglishWord> englishWord = englishWordRepository.findById(Long.valueOf(idEnglish.get()));
+      return englishWord;
+    }
+    return Optional.empty();
   }
+
 
   private int getIdOfPolishWord(String polishWord) {
     Optional<PolishWord> polish = polishWordRepository.findFirstByWord(polishWord);

@@ -55,7 +55,7 @@ public class AttemptsService {
         String username = ((UserDetails) principal).getUsername();
         return userRepository.findByUserName(username)
                 .map(User::getId)
-                .orElse(null);
+                .orElse(0L);
       }
     }
     return 0L;

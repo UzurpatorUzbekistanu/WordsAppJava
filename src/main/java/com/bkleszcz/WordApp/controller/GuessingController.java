@@ -3,6 +3,7 @@ package com.bkleszcz.WordApp.controller;
 import com.bkleszcz.WordApp.model.dto.GuessCheckResponse;
 import com.bkleszcz.WordApp.service.AttemptsService;
 import com.bkleszcz.WordApp.service.GuessingService;
+import com.bkleszcz.WordApp.service.SynonymService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,37 +42,40 @@ public class GuessingController {
     return ResponseEntity.ok(words);
   }
 
-  @PostMapping("/check")
-  public ResponseEntity<Boolean> checkGuess(@RequestBody CheckRequest checkRequest) {
-    boolean correct = guessingService.checkTranslation(checkRequest.getPolishWord(), checkRequest.getEnglishWord());
-    return ResponseEntity.ok(correct);
+  @GetMapping("/check")
+  public ResponseEntity<GuessCheckResponse> checkGuess(@RequestBody CheckRequest body) {
+    final String pl = body.getPolishWord();
+    final String en = body.getEnglishWord();
+
+    GuessCheckResponse dto = guessingService.buildAndCheckResponseForUnauthenticatedUser(pl, en);
+
+    return ResponseEntity.ok(dto);
   }
 
-  @PostMapping("/checkAuth")                             // endpoint z JWT
-  public ResponseEntity<GuessCheckResponse> checkGuessAuth(@RequestBody CheckRequest body                               // payload z frontu
+  @PostMapping("/checkAuth")
+  public ResponseEntity<GuessCheckResponse> checkGuessAuth(@RequestBody CheckRequest body
   ) {
-    String pl = body.getPolishWord();                              // PL z body
-    String en = body.getEnglishWord();                             // EN z body
-    boolean rawCorrect = guessingService.isCorrect(pl, en);        // sprawdź poprawność
-    boolean penalty = body.isHintPenalty();                        // flaga kary (>15%)
+    String pl = body.getPolishWord();
+    String en = body.getEnglishWord();
+    boolean rawCorrect = guessingService.checkTranslation(pl, en);
+    boolean penalty = body.isHintPenalty();
 
-    boolean toPersistAsCorrect = penalty ? false : rawCorrect;     // kara → zapis jako błędne
-    GuessCheckResponse dto = attemptsService                       // zapisz + zbuduj DTO
-            .doAttemptAndBuildResponse(pl, en, toPersistAsCorrect);    // serwis domenowy
+    boolean toPersistAsCorrect = penalty ? false : rawCorrect;
+    GuessCheckResponse dto = attemptsService
+            .doAttemptAndBuildResponse(pl, en, toPersistAsCorrect);
 
-    if (penalty && rawCorrect) {                                   // trafił, ale z karą
-      dto.setCorrect(true);                                        // UI: „Correct”
-      dto.setExperienceGained(0);                                  // bez XP
-      // możesz też dodać dto.setHintPenaltyApplied(true) – jeśli masz to pole
+    if (penalty && rawCorrect) {
+      dto.setCorrect(true);
+      dto.setExperienceGained(0);
     }
-    return ResponseEntity.ok(dto);                                 // 200 OK
+    return ResponseEntity.ok(dto);
   }
 
 
-  @Getter                                                  // auto-gettery
+  @Getter
   public static class CheckRequest {
-    private String polishWord;                             // PL
-    private String englishWord;                            // EN (wpis usera)
-    private boolean hintPenalty;                           // ⬅️ czy przekroczono 15%
+    private String polishWord;
+    private String englishWord;
+    private boolean hintPenalty;
   }
 }

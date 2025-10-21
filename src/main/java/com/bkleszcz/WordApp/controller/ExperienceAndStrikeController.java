@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/get")
+@RequestMapping("api/get")
 public class ExperienceAndStrikeController {
 
 //    @GetMapping
