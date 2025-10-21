@@ -31,14 +31,15 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC = {
           // bez prefixu (jeśli kiedyś odpalisz bez context-pathu /api)
-          "/auth/**", "/UserApi/create", "/UserApi/loggedUser",
+          "/auth/**", "/UserApi/create",
           "/guess/random", "/guess/check",
           "/dictionary/**", "/rank/**", "/statistics/**",
-          "/error",
+          "/error", "synonyms/**",
           // z prefixem /api (obecny prod)
-          "/api/auth/**", "/api/UserApi/create", "/api/UserApi/loggedUser",
+          "/api/auth/**", "/api/UserApi/create",
           "/api/guess/random", "/api/guess/check",
           "/api/dictionary/**", "/api/rank/**", "/api/statistics/**",
+          "/api/synonyms/**",
           // opcjonalnie: health do szybkiej diagnostyki
           "/actuator/health", "/api/actuator/health"
   };

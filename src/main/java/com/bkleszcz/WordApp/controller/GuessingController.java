@@ -42,7 +42,7 @@ public class GuessingController {
     return ResponseEntity.ok(words);
   }
 
-  @GetMapping("/check")
+  @PostMapping("/check")
   public ResponseEntity<GuessCheckResponse> checkGuess(@RequestBody CheckRequest body) {
     final String pl = body.getPolishWord();
     final String en = body.getEnglishWord();

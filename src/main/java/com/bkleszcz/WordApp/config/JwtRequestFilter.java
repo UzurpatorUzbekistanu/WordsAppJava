@@ -29,22 +29,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private static final String[] PUBLIC = {
             "auth/**",
             "UserApi/create",
-            "UserApi/loggedUser",
             "guess/random",
             "guess/check",
             "dictionary/**",
             "rank/**",
             "statistics/**",
+            "synonyms/**",
             "error",
             "api/auth/**",
             "api/UserApi/create",
-            "api/UserApi/loggedUser",
             "api/guess/random",
             "api/guess/check",
             "api/dictionary/**",
             "api/rank/**",
             "api/statistics/**",
-            "get/sentences"
+            "get/sentences",
+            "api/synonyms/**"
     };
 
     private final JwtUtil jwtUtil;
